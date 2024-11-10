@@ -362,7 +362,7 @@ def AddProducto(request):
         # Validacion Categoria
         if categoria == '-1':
             has_error['cate_default'] = 'El Campo CATEGORIA Debe ser DISTINTO al PREDETERMINADO'
-            
+
 
         # Validacion Descripcion
         if descripcion.strip() == "":
@@ -398,7 +398,6 @@ def AddProducto(request):
             producto = Producto(
                 nombre=nombre,
                 categoria=get_object_or_404(CategoriaProducto, id=categoria),
-                proveedor=get_object_or_404(Proveedor, id=proveedor),
                 descripcion=descripcion,
                 precio_unitario=precio,
                 fecha_ingreso=fecha,
@@ -408,23 +407,21 @@ def AddProducto(request):
             producto.save()
             return redirect('addProducto')
         else:
-            return render(request, 'admin/productos/addProducto.html', {'categorias': categorias, 'proveedores': proveedores, 'errores':has_error})
+            return render(request, 'admin/productos/addProducto.html', {'categorias': categorias, 'errores':has_error})
   
     elif request.method == 'GET':
-        return render(request, 'admin/productos/addProducto.html', {'categorias': categorias, 'proveedores': proveedores})
+        return render(request, 'admin/productos/addProducto.html', {'categorias': categorias})
 
 # @admin_required
 def EditProducto(request, id):
     producto = get_object_or_404(Producto, id=id)
     categorias = CategoriaProducto.objects.all()
-    proveedores = Proveedor.objects.all()
 
     if request.method == 'POST':
         has_error = {}
 
         nombre = request.POST.get('nombre')
         categoria = request.POST.get('categoria')
-        proveedor = request.POST.get('proveedor')
         descripcion = request.POST.get('descripcion')
         precio = request.POST.get('precio')
         fecha = request.POST.get('fecha')
@@ -444,9 +441,6 @@ def EditProducto(request, id):
         if categoria == '-1':
             has_error['cate_default'] = 'El Campo CATEGORIA Debe ser DISTINTO al PREDETERMINADO'
         
-        # Validacion Proveedor
-        if proveedor == '-1':
-            has_error['pro_default'] = 'El Campo Proveedor Debe ser DISTINTO al PREDETERMINADO'
 
         # Validacion Descripcion
         if descripcion.strip() == "":
@@ -482,7 +476,6 @@ def EditProducto(request, id):
             # Actualizar el producto
             producto.nombre = nombre
             producto.categoria = get_object_or_404(CategoriaProducto, id=categoria)
-            producto.proveedor = get_object_or_404(Proveedor, id=proveedor)
             producto.descripcion = descripcion
             producto.precio_unitario = precio
             producto.fecha_ingreso = fecha
@@ -495,7 +488,6 @@ def EditProducto(request, id):
         else:
             return render(request, 'admin/productos/editProducto.html', {
                 'categorias': categorias,
-                'proveedores': proveedores,
                 'producto': producto,
                 'errores': has_error
             })
@@ -503,7 +495,6 @@ def EditProducto(request, id):
     elif request.method == 'GET':
         return render(request, 'admin/productos/addProducto.html', {
             'categorias': categorias,
-            'proveedores': proveedores,
             'producto': producto
         })
 

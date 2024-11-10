@@ -1,36 +1,17 @@
+// comanda en vscode
 python manage.py shell
 
----------------------------------------------------------------
-
-from app.models import Roles
-
-# Crear roles
-Roles.objects.get_or_create(nombre="Cliente")
-Roles.objects.get_or_create(nombre="Administrador")
-Roles.objects.get_or_create(nombre="Picker")
-
-print("Roles creados exitosamente.")
-
-
----------------------------------------------------------------
-
-
-from app.models import Usuario, Roles
-
-# Buscar los roles
-rol_admin = Roles.objects.get(nombre="Administrador")
-rol_picker = Roles.objects.get(nombre="Picker")
-rol_cliente = Roles.objects.get(nombre="Cliente")
-
-# Crear usuarios y asignarles roles
-usuario_admin = Usuario.objects.create(
-    rut="20197874-2",
-    nombre="Francisco",
-    email="Francisco@nufra.com",
-    telefono=988325279,
-    direccion="Calle Falsa 123",
-    password="inacap",
-    estado="Activo",
-    rol=rol_Administrador
+// insert del primer adm reemplazar credenciales a gusto
+from app.models import Administrador, Roles
+from django.contrib.auth.hashers import make_password
+admin = Administrador(
+nombre='Miguel',
+apellido='Acum',
+username='acum.miguel85',
+password=make_password('123456'),
+estado='Activo',
+rol=Roles.objects.get(id=1),
+correo='acum.miguel85@nufra.com',
+telefono='84207383'
 )
-
+admin.save()
