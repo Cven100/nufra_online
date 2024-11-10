@@ -1,0 +1,67 @@
+{% extends 'shared/base.html' %}
+{% load static %}
+
+{% block title %}Inicio Sesión{% endblock %}
+
+{% block header %}
+    <div class="container-fluid text-center py-4" style="background-color: #4A4063;">
+        <a href="{% url 'home' %}">
+            <img class="img-fluid d-block mx-auto" style="max-height: 5rem;" src="{% static '/images/Logo.png' %}" alt="Logo">
+        </a>
+    </div>
+{% endblock %}
+
+{% block content %}
+    <div class="container d-flex align-items-center justify-content-center" style="height: 70vh;">
+        <div class="card p-4 shadow" style="max-width: 32rem;width: 100%;">
+            <form method="POST">
+                <h1 class="card-title text-center">Inicio de Sesion</h1>
+                {% csrf_token %}
+                {% if errores.cred_error %}
+                    <span class="text-danger">{{errores.cred_error}}</span>
+                {% elif errores.user_error %}
+                    <span class="text-danger">{{errores.user_error}}</span>
+                {% endif %}
+                <div class="form-group mt-3">
+                    <label for="username" class="form-label">Usuario</label>
+                    <div class="input-group">
+                        <input 
+                        type="text" 
+                        class="form-control" 
+                        id="username" 
+                        name="username" 
+                        placeholder="peralta.javier02" 
+                        aria-label="correo" 
+                        aria-describedby="basic-addon2"
+                        maxlength="254"
+                        >
+                        <span class="input-group-text" id="basic-addon2">@nufra.com</span>
+                    </div>
+                    {% if errores.username_empty %}
+                    <span class="text-danger">{{errores.username_empty}}</span>
+                    {% elif errores.username_max_char %}
+                    <span class="text-danger">{{errores.username_max_char}}</span>
+                    {% elif errores.username_char_error %}
+                    <span class="text-danger">{{errores.username_char_error}}</span>
+                    {% endif %}
+                </div>
+                <div class="form-group mt-2">
+                    <label for="password" class="form-label">Contraseña</label>
+                    <input type="password" name="password" class="form-control" maxlength="128">
+                    {% if errores.password_empty %}
+                    <span class="text-danger">{{errores.password_empty}}</span>
+                    {% elif errores.password_max_char %}
+                    <span class="text-danger">{{errores.password_max_char}}</span>
+                    {% endif %}
+                </div>
+                <div class="form-group form-check mt-1">
+                    <input type="checkbox" name="password" class="form-check-input">
+                    <label for="password" class="form-label">Recordarme</label>
+                </div>
+                <button type="submit" class="btn btn-secondary w-100">LogIn</button>
+            </form>
+            <!-- Enlace para registrarse -->
+            <p class="text-center mt-3">¿No tienes cuenta? <a href="{% url 'Register' %}">Regístrate aquí</a></p>
+        </div>
+    </div>
+{% endblock %}

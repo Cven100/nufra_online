@@ -1,0 +1,164 @@
+{% extends 'shared/baseIndex.html' %}
+{% load static %}
+
+{% block title %}Registro{% endblock %}
+
+{% block brand %}
+<a href="{% url 'AdminHome' %}" class="navbar-brand">
+    <img class="img-fluid d-block mx-auto" style="max-height: 5rem;" src="{% static '/images/Logo.png' %}" alt="Logo">
+</a>
+{% endblock %}
+
+{% block navitems %}
+<li class="nav-item">
+    <a href="{% url 'AdminHome' %}" class="nav-link">Inicio</a>
+</li>
+<li class="nav-item">
+    <a href="{% url 'Trabajadores' %}" class="nav-link">Gestión de Trabajadores</a>
+</li>
+<li class="nav-item">
+    <a href="{% url 'Reportes' %}" class="nav-link">Reportes</a>
+</li>
+<li class="nav-item">
+    <a href="{% url 'Config' %}" class="nav-link">Configuración Tienda</a>
+</li>
+<li class="nav-item">
+    <a href="{% url 'Register' %}" class="nav-link">Ingreso de Usuarios</a>
+</li>
+{% endblock %}
+
+{% block content %}
+<div class="container d-flex align-items-center justify-content-center" style="height: 80vh;">
+    <div class="card p-4 shadow" style="max-width: 32rem; width: 100%;">
+        <h1 class="card-title text-center">Registro</h1>
+        <form method="POST">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-6 mt-3">
+                    <label for="nombre" class="form-label">Nombre</label>
+                    <input type="text" id="nombre" name="nombre" class="form-control" placeholder="Juan" maxlength="150">
+                    {% if errores.name_empty %}
+                    <span class="text-danger">{{errores.name_empty}}</span>
+                    {% elif errores.name_max_char %}
+                    <span class="text-danger">{{errores.name_max_char}}</span>
+                    {% endif %}
+                </div>
+                <div class="col-6 mt-3">
+                    <label for="apellido" class="form-label">Apellido</label>
+                    <input type="text" id="apellido" name="apellido" class="form-control" placeholder="Peralta" maxlength="150">
+                    {% if errores.ape_empty %}
+                    <span class="text-danger">{{errores.ape_empty}}</span>
+                    {% elif errores.ape_max_char %}
+                    <span class="text-danger">{{errores.ape_max_char}}</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="form-group mt-3">
+                <label for="username" class="form-label">Correo</label>
+                <div class="input-group">
+                    <input 
+                    type="text" 
+                    class="form-control" 
+                    id="username" 
+                    name="username" 
+                    placeholder="peralta.javier02" 
+                    aria-label="correo" 
+                    aria-describedby="basic-addon2"
+                    maxlength="254"
+                    >
+                    <span class="input-group-text" id="basic-addon2">@nufra.com</span>
+                </div>
+                {% if errores.username_empty %}
+                <span class="text-danger">{{errores.username_empty}}</span>
+                {% elif errores.username_char_error %}
+                <span class="text-danger">{{errores.username_char_error}}</span>
+                {% endif %}
+            </div>
+            <div class="form-group mt-3">
+                <label for="rol" class="form-label">Rol</label>
+                <select name="rol" id="rol" class="form-select me-2">
+                    <option value="-1">--Seleccione un Rol--</option>
+                    {% for i in roles %}
+                    <option value="{{i.id}}">{{i.nombre}}</option>
+                    {% endfor %}
+                </select>
+                {% if errores.rol_default %}
+                <span class="text-danger">{{errores.rol_default}}</span>
+                {% endif%}
+            </div>
+
+            <div class="row">
+                <div class="col-6 mt-2">
+                    <label for="password" class="form-label">Contraseña</label>
+                    <input type="password" id="password" name="password" class="form-control" maxlength="128">
+                    {% if errores.password_empty %}
+                    <span class="text-danger">{{errores.password_empty}}</span>
+                    {% elif errores.password_max_char %}
+                    <span class="text-danger">{{errores.password_max_char}}</span>
+                    {% endif %}
+                </div>
+                <div class="col-6 mt-2">
+                    <label for="confirm_password" class="form-label">Confirmar Contraseña</label>
+                    <input type="password" name="confirm_password" id="confirm_password" class="form-control" maxlength="128">
+                    {% if errores.con_pass_empty %}
+                    <span class="text-danger">{{errores.con_pass_empty}}</span>
+                    {% elif errores.con_pass_max_char %}
+                    <span class="text-danger">{{errores.con_pass_max_char}}</span>
+                    {% endif %}
+                </div>
+                {% if errores.password_final %}
+                <span class="text-danger">{{errores.password_final}}</span>
+                {% endif %}
+            </div>
+
+            <!-- CAMPOS POR ROL -->
+            <div class="form-group mt-3" id="adminFields" style="display: none;">
+                <label for="telefono" class="form-label">Teléfono</label>
+                <input type="text" id="telefono" name="telefono" class="form-control" placeholder="Ingrese teléfono" maxlength="15">
+                {% if errores.telefono_empty %}
+                <span class="text-danger">{{errores.telefono_empty}}</span>
+                {% endif %}
+            </div>
+
+            <div class="form-group mt-3" id="vendedorFields" style="display: none;">
+               <div class="form-group">
+                    <label for="supervisor">Supervisor</label>
+                    <select name="supervisor" id="supervisor" class="form-select">
+                        <option value="-1">Sin Asignar</option>
+                        {% for i in supervisores %}
+                        <option value="{{i.id}}">{{i.nombre}} {{i.apellido}}</option>
+                        {% endfor %}
+                    </select>
+                    {% if errores.none_error %}
+                    <span class="text-danger">{{errores.none_error}}</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="form-group mt-3" id="supervisorFields" style="display: none;">
+                <label for="turno" class="form-label">Turno</label>
+                <input type="text" id="turno" name="turno" class="form-control" placeholder="Turno asignado">
+                {% if errores.turno_empty %}
+                <span class="text-danger">{{errores.turno_empty}}</span>
+                {% endif %}
+                <div class="form-group" id="equipoFields" style="display: none;">
+                    <label for="equipo" class="form-label">Seleccionar Equipo</label>
+                    <select name="equipo" id="equipo" class="form-select" multiple>
+                        <option value="-1">Sin equipo</option>
+                        {% for i in vendedores %}
+                        <option value="{{ i.id }}">{{ i.nombre }} {{ i.apellido }}</option>
+                        {% endfor %}
+                    </select>
+                    {% if errores.equipo_empty %}
+                    <span class="text-danger">{{errores.equipo_empty}}</span>
+                    {% elif errores.equipo_multi %}
+                    <span class="text-danger">{{errores.equipo_multi}}</span>
+                    {% endif %}
+                </div>    
+            </div>
+            <button type="submit" class="btn btn-secondary w-100 mt-3">Registrar</button> 
+        </form>
+    </div>
+</div>
+<script src="{% static 'js/register/select.js' %}"></script>    
+{% endblock %}

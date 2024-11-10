@@ -1,0 +1,101 @@
+{% extends 'shared/baseIndex.html' %}
+{% load static %}
+
+{% block title %}Reportes{% endblock %}
+
+{% block brand %}
+<a href="{% url 'AdminHome' %}" class="navbar-brand">
+    <img class="img-fluid d-block mx-auto" style="max-height: 5rem;" src="{% static '/images/Logo.png' %}" alt="Logo">
+</a>
+{% endblock %}
+
+{% block navitems %}
+<li class="nav-item">
+    <a href="{% url 'AdminHome' %}" class="nav-link">Inicio</a>
+</li>
+<li class="nav-item">
+    <a href="{% url 'Trabajadores' %}" class="nav-link">Gestion de Trabajadores</a>
+</li>
+<li class="nav-item">
+    <a href="{% url 'Reportes' %}" class="nav-link">Reportes</a>
+</li>
+<li class="nav-item">
+    <a href="{% url 'Config' %}" class="nav-link">Configuracion Tienda</a>
+</li>
+<li class="nav-item">
+    <a href="{% url 'Register' %}" class="nav-link">Ingreso de Usuarios</a>
+</li>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h4 class="h4 border-bottom pb-2">Generar Reporte</h4>
+    <div class="col mt-3">
+        <form action="">
+            <div class="row">
+                <div class="col-md-4">
+                    <label for="tipo" class="form-label">Tipo</label>
+                    <select name="tipo" id="tipo" class="form-select">
+                        <option value="-1">--Seleccione Reporte--</option>
+                        <!-- Cargar -->
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="categoria" class="form-label">Categoría</label>
+                    <select name="categoria" id="categoria" class="form-select">
+                        <option value="-1">--Seleccione Categoría--</option>
+                        <!-- Cargar -->
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="trabajador" class="form-label">Trabajador/es</label>
+                    <select name="trabajador" id="trabajador" class="form-select">
+                        <option value="-1">--Seleccione Trabajador--</option>
+                        <!-- Cargar -->
+                    </select>
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="col-md-4">
+                    <label for="anio" class="form-label">Año</label>
+                    <select name="anio" id="anio" class="form-select">
+                        <option value="-1">--Seleccione Año--</option>
+                        <!-- Cargar -->
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="mes" class="form-label">Mes</label>
+                    <select name="mes" id="mes" class="form-select">
+                        <option value="-1">--Seleccione Mes--</option>
+                        <!-- Cargar -->
+                    </select>
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="col">
+                    <label for="descripcion" class="form-label">Descripción</label>
+                    <textarea name="descripcion" id="descripcion" class="form-control" rows="4" placeholder="Escriba la descripción del reporte aquí..."></textarea>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary mt-3">Generar</button>
+        </form>
+    </div>
+    <div class="col mt-5">
+        <h4 class="border-bottom pb-2">Historial</h4>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Nro</th>
+                    <th>Área</th>
+                    <th>Trabajador</th>
+                    <th>Fecha</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Cargar -->
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

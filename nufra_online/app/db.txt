@@ -1,0 +1,36 @@
+python manage.py shell
+
+---------------------------------------------------------------
+
+from app.models import Roles
+
+# Crear roles
+Roles.objects.get_or_create(nombre="Cliente")
+Roles.objects.get_or_create(nombre="Administrador")
+Roles.objects.get_or_create(nombre="Picker")
+
+print("Roles creados exitosamente.")
+
+
+---------------------------------------------------------------
+
+
+from app.models import Usuario, Roles
+
+# Buscar los roles
+rol_admin = Roles.objects.get(nombre="Administrador")
+rol_picker = Roles.objects.get(nombre="Picker")
+rol_cliente = Roles.objects.get(nombre="Cliente")
+
+# Crear usuarios y asignarles roles
+usuario_admin = Usuario.objects.create(
+    rut="20197874-2",
+    nombre="Francisco",
+    email="Francisco@nufra.com",
+    telefono=988325279,
+    direccion="Calle Falsa 123",
+    password="inacap",
+    estado="Activo",
+    rol=rol_Administrador
+)
+

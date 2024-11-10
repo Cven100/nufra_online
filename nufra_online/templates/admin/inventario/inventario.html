@@ -1,0 +1,78 @@
+{% extends 'shared/baseIndex.html'%}
+{% load static %}
+
+{% block title %}Inventario{% endblock %}
+
+{% block brand %}
+<a href="{% url 'SupHome' %}" class="navbar-brand">
+    <img class="img-fluid d-block mx-auto" style="max-height: 5rem;" src="{% static '/images/Logo.png' %}" alt="Logo">
+</a>
+{% endblock %}
+
+{% block navitems %}
+<li class="nav-item">
+    <a href="{% url 'SupHome' %}" class="nav-link">Inicio</a>
+</li>
+<li class="nav-item">
+    <a href="{% url 'SupPanel' %}" class="nav-link">Panel de Control</a>
+</li>
+<li class="nav-item">
+    <a href="{% url 'SupInvent' %}" class="nav-link">Gestion de Inventario</a>
+</li>
+<li class="nav-item">
+    <a href="{% url 'SupPersonal' %}" class="nav-link">Gestion Personal</a>
+</li>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mt-3">
+        <h4 class="h4" style="border-bottom: solid;">Inventario Actual</h4>
+        <div class="table table-responsive mt-3">
+            {% if inventario %}
+                    <div class="row">
+                        <div class="col text-end">
+                            <a href="#" class="btn btn-primary mx-auto">+</a>
+                        </div>
+                    </div>
+            {% endif %}
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Codigo</th>
+                        <th>Producto</th>
+                        <th>Stock</th>
+                        <th>Estado</th>
+                        <th>Precio Unitario</th>
+                        <th>Accion</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if not inventario %}
+                    <tr id="emptyRow">
+                        <td colspan="6" class="text-center">
+                          <a href="#" class="btn btn-primary">+</a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    {% for i in inventario %}
+                    <tr>
+                        <td>i.producto.id</td>
+                        <td>i.nombre</td>
+                        <td>i.stock</td>
+                        <td>i.estado</td>
+                        <td>i.precio</td>
+                        <td>
+                            <a href="#" class="btn btn-primary"></a>
+                            <a href="#" class="btn btn-primary"></a>
+                            <a href="#" class="btn btn-primary"></a>
+                            <a href="#" class="btn btn-primary"></a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

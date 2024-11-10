@@ -1,0 +1,154 @@
+{% extends 'shared/baseIndex.html' %}
+{% load static %}
+
+{% block title %}Home{% endblock %}
+
+{% block brand %}
+<a href="{% url 'home' %}" class="navbar-brand d-flex align-items-center">
+    <img class="img-fluid d-block mx-auto" style="max-height: 5rem;" src="{% static '/images/Logo.png' %}" alt="Logo de la tienda de confites">
+</a>
+{% endblock %}
+
+{% block navitems %}
+    <li class="nav-item">
+        <a href="{% url 'home' %}" class="nav-link text-decoration-underline">Inicio</a>
+    </li>
+    <li class="nav-item">
+        <a href="{% url 'Catalog' %}" class="nav-link text-decoration-underline">Productos</a>
+    </li>
+    <li class="nav-item">
+        <a href="{% url 'About' %}" class="nav-link text-decoration-underline">Sedes</a>
+    </li>
+    <li class="nav-item">
+        <a href="{% url 'FAQ' %}" class="nav-link text-decoration-underline">Contacto</a>
+    </li>
+{% endblock %}
+
+{% block content %}
+<section class="home-container py-5 bg-light">
+    <div class="d-flex justify-content-center position-relative">
+        <!-- Imagen que toma todo el ancho de la página con el título encima -->
+        <img class="img-fluid w-100" src="{% static '/images/Shop/Banner.jpg' %}" alt="Banner de bienvenida" style="max-height: 400px; object-fit: cover;">
+        <div class="hero-text position-absolute top-50 start-50 translate-middle text-center text-white" style="z-index: 2;">
+            <h1 class="fw-bold mb-3" style="font-family: 'Comic Sans MS', cursive, sans-serif; text-shadow: 2px 2px 4px #000000;">Bienvenidos a Nufra</h1>
+            <p class="lead" style="text-shadow: 1px 1px 3px #000000; font-size: 1.75rem;">Descubre los mejores productos de Chile en nuestro catálogo</p>
+            <a href="{% url 'Catalog' %}" class="btn btn-danger btn-lg">Ver Productos</a>
+        </div>
+    </div>
+    <br>
+    <h2 class="text-center text-danger fw-bold mb-5" style="font-family: 'Comic Sans MS', cursive, sans-serif;">Contenido Destacado</h2>
+    <div class="col mx-auto" style="max-width: 800px;">
+        <p class="text-muted ms-3">Bienvenido a Nufra, tu destino para los mejores productos de confitería. Explora nuestro catálogo y descubre dulces sorpresas.</p>
+    </div>
+
+    <br>
+
+    <!-- Carrusel con fondo oscuro -->
+    <div id="carouselExampleAutoplaying" class="carousel slide" data-bs-ride="carousel" data-bs-interval="3000">
+        <div class="carousel-inner">
+            <div class="carousel-item active">
+                <div class="carousel-image-container">
+                    <img src="{% static 'images/Shop/chocolates/c1.jpg' %}" class="d-block w-100 carousel-image" alt="Chocolate Premium" style="max-height: 400px;">
+                    <div class="carousel-background"></div>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <div class="carousel-image-container">
+                    <img src="{% static 'images/Shop/chocolates/c2.jpg' %}" class="d-block w-100 carousel-image" alt="Chocolate de Leche" style="max-height: 400px;">
+                    <div class="carousel-background"></div>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <div class="carousel-image-container">
+                    <img src="{% static 'images/Shop/chocolates/c3.jpg' %}" class="d-block w-100 carousel-image" alt="Trufas de Chocolate" style="max-height: 400px;">
+                    <div class="carousel-background"></div>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <div class="carousel-image-container">
+                    <img src="{% static 'images/Shop/chocolates/c4.jpg' %}" class="d-block w-100 carousel-image" alt="Dulces Variados" style="max-height: 400px;">
+                    <div class="carousel-background"></div>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <div class="carousel-image-container">
+                    <img src="{% static 'images/Shop/chocolates/c5.jpg' %}" class="d-block w-100 carousel-image" alt="Chocolate Oscuro" style="max-height: 400px;">
+                    <div class="carousel-background"></div>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <div class="carousel-image-container">
+                    <img src="{% static 'images/Shop/chocolates/c6.jpg' %}" class="d-block w-100 carousel-image" alt="Bombones" style="max-height: 400px;">
+                    <div class="carousel-background"></div>
+                </div>
+            </div>
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleAutoplaying" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleAutoplaying" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+        </button>
+    </div>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+
+</section>
+<img class="img-fluid w-100" src="{% static '/images/Shop/ms.png' %}" alt="Ministerio de salud" style="max-height: 400px; object-fit: cover;">
+
+
+<style>
+    .carousel-inner {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .carousel-image-container {
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .carousel-image {
+        object-fit: contain; /* Mantiene las proporciones originales de la imagen */
+        max-height: 400px;
+    }
+
+    .carousel-background {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: inherit;
+        background-size: cover;
+        background-position: center;
+        background-color: rgba(0, 0, 0, 0.5); /* Fondo oscuro */
+        z-index: -1; /* Coloca el fondo debajo de la imagen */
+    }
+
+    .carousel-control-prev, .carousel-control-next {
+        background-color: rgba(0, 0, 0, 0.5); /* Fondo oscuro para los botones */
+        border: none;
+        color: white;
+        width: 5%;
+        transition: background-color 0.3s ease;
+    }
+
+    .carousel-control-prev-icon, .carousel-control-next-icon {
+        filter: invert(1); /* Hace los íconos blancos para una mejor visibilidad */
+    }
+
+    .carousel-control-prev:hover, .carousel-control-next:hover, 
+    .carousel-control-prev:focus, .carousel-control-next:focus, 
+    .carousel-control-prev:active, .carousel-control-next:active {
+        background-color: rgba(0, 0, 0, 0.5); /* Fondo oscuro constante */
+    }
+</style>
+{% endblock %}

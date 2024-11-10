@@ -1,0 +1,93 @@
+{% extends 'shared/baseIndex.html' %}
+{% load static %}
+
+{% block title %}Home{% endblock %}
+
+{% block brand %}
+<a href="{% url 'AdminHome' %}" class="navbar-brand">
+    <img class="img-fluid d-block mx-auto" style="max-height: 5rem;" src="{% static '/images/Logo.png' %}" alt="Logo">
+</a>
+{% endblock %}
+
+{% block home %}
+<a href="{% url 'home' %}">
+    <i class="fa-solid fa-house-user fa-2x" style="color: white;"></i>
+</a>
+{% endblock %}
+
+{% block navitems %}
+<li class="nav-item">
+    <a href="{% url 'AdminHome' %}" class="nav-link">Inicio</a>
+</li>
+<li class="nav-item">
+    <a href="{% url 'Trabajadores' %}" class="nav-link">Gestión de Trabajadores</a>
+</li>
+<li class="nav-item">
+    <a href="{% url 'Reportes' %}" class="nav-link">Reportes</a>
+</li>
+<li class="nav-item">
+    <a href="{% url 'Config' %}" class="nav-link">Configuración Tienda</a>
+</li>
+<li class="nav-item">
+    <a href="{% url 'Register' %}" class="nav-link">Ingreso de Usuarios</a>
+</li>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="text-center">Bienvenido al Panel de Administración</h1>
+    
+    <!-- Manteniendo la estructura de cards y agregando nuevas secciones -->
+    <div class="row mt-5">
+        <div class="col-md-4 mb-4">
+            <div class="card text-center shadow">
+                <div class="card-body">
+                    <h5 class="card-title">Gestión de Trabajadores</h5>
+                    <p class="card-text">Administra la información de los trabajadores y sus roles.</p>
+                    <a href="{% url 'Trabajadores' %}" class="btn btn-primary">Ir a Trabajadores</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card text-center shadow">
+                <div class="card-body">
+                    <h5 class="card-title">Reportes</h5>
+                    <p class="card-text">Genera reportes detallados de las actividades realizadas.</p>
+                    <a href="{% url 'Reportes' %}" class="btn btn-primary">Ir a Reportes</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card text-center shadow">
+                <div class="card-body">
+                    <h5 class="card-title">Configuración</h5>
+                    <p class="card-text">Ajusta la configuración de la tienda según tus necesidades.</p>
+                    <a href="{% url 'Config' %}" class="btn btn-primary">Ir a Configuración</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-5">
+        <div class="col-md-4 mb-4">
+            <div class="card text-center shadow">
+                <div class="card-body">
+                    <h5 class="card-title">Ingreso de Usuarios</h5>
+                    <p class="card-text">Registra nuevos usuarios en el sistema.</p>
+                    <a href="{% url 'Register' %}" class="btn btn-primary">Registrar Usuario</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Posiblemente tablas con datos importantes -->
+    <div class="row mt-5">
+        <div class="col">
+            <h2>Contenido Admin</h2>
+            <!-- Se puede agregar aquí más información específica como tablas -->
+        </div>
+    </div>
+</div>
+{% endblock %}

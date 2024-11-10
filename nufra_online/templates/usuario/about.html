@@ -1,0 +1,98 @@
+{% extends 'shared/baseIndex.html' %}
+{% load static %}
+
+{% block title %}Sedes{% endblock %}
+
+{% block brand %}
+<a href="{% url 'home' %}" class="navbar-brand d-flex align-items-center">
+    <img class="img-fluid d-block mx-auto" style="max-height: 5rem;" src="{% static 'images/Logo.png' %}" alt="Logo de la tienda de confites">
+</a>
+{% endblock %}
+
+{% block navitems %}
+    <li class="nav-item">
+        <a href="{% url 'home' %}" class="nav-link text-decoration-underline">Inicio</a>
+    </li>
+    <li class="nav-item">
+        <a href="{% url 'Catalog' %}" class="nav-link text-decoration-underline">Productos</a>
+    </li>
+    <li class="nav-item">
+        <a href="{% url 'About' %}" class="nav-link text-decoration-underline">Sede</a>
+    </li>
+    <li class="nav-item">
+        <a href="{% url 'FAQ' %}" class="nav-link text-decoration-underline">Contacto</a>
+    </li>
+{% endblock %}
+
+{% block content %}
+<section class="content-container py-5 bg-light">
+    <h1 class="text-center text-danger fw-bold mb-5" style="font-family: 'Comic Sans MS', cursive, sans-serif; font-size: 3rem;">Ubicación</h1>
+    <div class="container">
+            <!-- Sede Osorno -->
+            <div class="col-md-6">
+                <h2 class="text-center text-primary mb-3" style="font-family: 'Comic Sans MS', cursive, sans-serif;">Osorno</h2>
+                <div class="text-center image-container">
+                    <a href="https://maps.app.goo.gl/Hx3X6HtCYFbhh6wj6" target="_blank">
+                        <img class="img-fluid rounded-3 shadow-lg hover-image" src="{% static 'images/Shop/4.jpg' %}" alt="Sede Osorno" style="max-height: 500px; object-fit: cover;">
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+<style>
+    /* Contenedor principal */
+    .content-container {
+        background-color: #f8f9fa;
+        padding-top: 50px;
+        padding-bottom: 50px;
+    }
+
+    /* Títulos */
+    .content-container h1 {
+        font-family: 'Comic Sans MS', cursive, sans-serif;
+        color: #d9534f;
+        font-size: 3rem;
+    }
+
+    .content-container h2 {
+        font-family: 'Comic Sans MS', cursive, sans-serif;
+        color: #0275d8;
+        font-size: 2.2rem;
+    }
+
+    /* Imágenes */
+    .img-fluid {
+        border-radius: 15px;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease, filter 0.3s ease;  /* Añadimos la transición */
+    }
+
+    /* Fila de imágenes */
+    .row {
+        margin-bottom: 40px;
+    }
+
+    /* Mejoras en la disposición */
+    .col-md-6 {
+        margin-bottom: 20px;
+    }
+
+    /* Animación al pasar el mouse sobre la imagen */
+    .image-container {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .hover-image {
+        transition: transform 0.3s ease, filter 0.3s ease;
+    }
+
+    /* Efectos de hover */
+    .image-container:hover .hover-image {
+        transform: scale(1.05);  /* Aumenta un poco el tamaño de la imagen */
+        filter: brightness(0.7); /* Oscurece la imagen */
+    }
+</style>

@@ -1,0 +1,153 @@
+{% extends 'shared/baseIndex.html' %}
+{% load static %}
+
+{% block title %}Contáctanos{% endblock %}
+
+{% block brand %}
+<a href="{% url 'home' %}" class="navbar-brand d-flex align-items-center">
+    <img class="img-fluid d-block mx-auto" style="max-height: 5rem;" src="{% static 'images/Logo.png' %}" alt="Logo de la tienda de confites">
+</a>
+{% endblock %}
+
+{% block navitems %}
+    <li class="nav-item">
+        <a href="{% url 'home' %}" class="nav-link text-decoration-underline">Inicio</a>
+    </li>
+    <li class="nav-item">
+        <a href="{% url 'Catalog' %}" class="nav-link text-decoration-underline">Productos</a>
+    </li>
+    <li class="nav-item">
+        <a href="{% url 'About' %}" class="nav-link text-decoration-underline">Sedes</a>
+    </li>
+    <li class="nav-item">
+        <a href="{% url 'FAQ' %}" class="nav-link text-decoration-underline">Contacto</a>
+    </li>
+{% endblock %}
+
+{% block content %}
+<section class="contact-container py-5 bg-light">
+    <h1 class="text-center text-danger fw-bold mb-5" style="font-family: 'Comic Sans MS', cursive, sans-serif; font-size: 3rem;">Contáctanos</h1>
+    <div class="container">
+        <p class="text-muted text-center mb-4" style="font-size: 1.1rem;">Si tienes alguna pregunta o necesitas asistencia, no dudes en ponerte en contacto con nosotros. Estamos aquí para ayudarte.</p>
+
+        <!-- Formulario de contacto -->
+        <div class="contact-item p-4 mb-4 rounded-3 shadow-sm" style="background-color: #ffe6e6; border-left: 5px solid #ff9999;">
+            <h2 class="fw-bold text-dark mb-3" style="font-size: 1.5rem;">Formulario de Contacto</h2>
+            <form action="#" method="POST">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="name" class="form-label">Nombre</label>
+                    <input type="text" class="form-control" id="name" name="name" required>
+                </div>
+                <div class="mb-3">
+                    <label for="email" class="form-label">Correo Electrónico</label>
+                    <input type="email" class="form-control" id="email" name="email" required>
+                </div>
+                <div class="mb-3">
+                    <label for="message" class="form-label">Mensaje</label>
+                    <textarea class="form-control" id="message" name="message" rows="4" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-danger w-100">Enviar Mensaje</button>
+            </form>
+        </div>
+
+        <!-- Información de contacto -->
+        <div class="contact-item p-4 mb-4 rounded-3 shadow-sm" style="background-color: #ffe6e6; border-left: 5px solid #ff9999;">
+            <h2 class="fw-bold text-dark mb-3" style="font-size: 1.5rem;">¿Prefieres llamarnos?</h2>
+            <p class="text-muted ms-3" style="line-height: 1.6;">Puedes llamarnos al siguiente número para recibir asistencia personalizada:</p>
+            <p class="fw-bold text-dark text-center" style="font-size: 1.25rem;">+1 234 567 890</p>
+        </div>
+
+        <div class="contact-item p-4 mb-4 rounded-3 shadow-sm" style="background-color: #ffe6e6; border-left: 5px solid #ff9999;">
+            <h2 class="fw-bold text-dark mb-3" style="font-size: 1.5rem;">¿Tienes alguna consulta por correo?</h2>
+            <p class="text-muted ms-3" style="line-height: 1.6;">Envíanos un correo electrónico a:</p>
+            <p class="fw-bold text-dark text-center" style="font-size: 1.25rem;">contacto@nufra.com</p>
+        </div>
+
+        <div class="contact-item p-4 mb-4 rounded-3 shadow-sm" style="background-color: #ffe6e6; border-left: 5px solid #ff9999;">
+            <h2 class="fw-bold text-dark mb-3" style="font-size: 1.5rem;">Visítanos en nuestras sedes</h2>
+            <p class="text-muted ms-3" style="line-height: 1.6;">Encuentra nuestras ubicaciones y ven a visitarnos en cualquier momento.</p>
+            <p class="fw-bold text-dark text-center" style="font-size: 1.25rem;">Sede Principal: Calle Ficticia 123, Ciudad, País</p>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+<style>
+    /* Contenedor principal */
+    .contact-container {
+        background-color: #f8f9fa;
+        padding-top: 50px;
+        padding-bottom: 50px;
+    }
+
+    /* Títulos */
+    .contact-container h1 {
+        font-family: 'Comic Sans MS', cursive, sans-serif;
+        color: #d9534f;
+        font-size: 3rem;
+    }
+
+    .contact-container h2 {
+        font-family: 'Comic Sans MS', cursive, sans-serif;
+        color: #0275d8;
+        font-size: 1.5rem;
+    }
+
+    /* Estilo de los formularios */
+    .form-label {
+        font-size: 1rem;
+        font-weight: bold;
+    }
+
+    .form-control {
+        font-size: 1rem;
+        border-radius: 10px;
+        box-shadow: none;
+    }
+
+    .btn-danger {
+        background-color: #d9534f;
+        border: none;
+        font-size: 1.1rem;
+        font-weight: bold;
+        border-radius: 5px;
+    }
+
+    .btn-danger:hover {
+        background-color: #c9302c;
+    }
+
+    /* Estilo para los contenedores de contacto */
+    .contact-item {
+        background-color: #ffe6e6;
+        border-left: 5px solid #ff9999;
+        border-radius: 15px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .contact-item h2 {
+        font-size: 1.5rem;
+        font-weight: bold;
+    }
+
+    .contact-item p {
+        font-size: 1rem;
+    }
+
+    /* Estilo para los textos dentro de las cajas */
+    .contact-item p.text-muted {
+        line-height: 1.6;
+    }
+
+    /* Textos destacados */
+    .contact-item p.fw-bold {
+        font-weight: bold;
+    }
+
+    /* Mejoras en la disposición */
+    .container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+</style>
