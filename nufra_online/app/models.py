@@ -68,6 +68,14 @@ class Venta(models.Model):
     rut_cliente = models.ForeignKey(Usuario, on_delete=models.DO_NOTHING)
     fecha = models.DateField()
     total = models.FloatField()
+
+    def save(self, *args, **kwargs):
+        #Sobreescribir el Metodo Save para que el nro_boleta sea auto-incrementable
+        if not self.nro_boleta:
+            # Obtener el último nro_boleta generado
+            max_nro_boleta = Venta.objects.aggregate(max_nro=models.Max('nro_boleta'))['max_nro']
+            self.nro_boleta = (max_nro_boleta or 0) + 1  # Incrementar a partir del último nro_boleta
+        super().save(*args, **kwargs)
     
 class DetalleVenta(models.Model):
     venta = models.ForeignKey(Venta, on_delete=models.DO_NOTHING)

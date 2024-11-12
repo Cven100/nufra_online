@@ -1,0 +1,38 @@
+{% extends 'shared/baseIndex.html' %}
+{% load static %}
+
+{% block title %}Visualizar Pedidos{% endblock %}
+
+{% block navitems %}
+    <li class="nav-item">
+        <a href="{% url 'home' %}" class="nav-link text-decoration-underline">Inicio</a>
+    </li>
+    <li class="nav-item">
+        <a href="{% url 'gestionar_pedidos' %}" class="nav-link text-decoration-underline">Gestionar Pedidos</a>
+    </li>
+    <li class="nav-item">
+        <a href="{% url 'visualizar_stock' %}" class="nav-link text-decoration-underline">Visualizar Stock</a>
+    </li>
+{% endblock %}
+
+{% block content %}
+<section class="content-container py-5 bg-light">
+    <h1 class="text-center text-danger fw-bold mb-5">Visualización de Pedidos</h1>
+    <div class="container">
+        <div class="row">
+            {% for pedido in pedidos %}
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Pedido #{{ pedido.id }}</h5>
+                        <p class="card-text">Estado: {{ pedido.estado }}</p>
+                        <p class="card-text">Fecha: {{ pedido.fecha }}</p>
+                        <a href="{% url 'detalle_pedido' pedido.id %}" class="btn btn-primary">Ver Detalle</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

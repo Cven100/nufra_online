@@ -66,19 +66,20 @@ def RenderLogin(request):
             
         if not has_error:
             try:
-                user = Usuario.objects.get(username=username)
+                username = username + '@nufra.com'
+                user = Usuario.objects.get(email=username)
                 if user.check_password(password):
                     # SESSION DATA
                     request.session['user_id'] = user.id
-                    request.session['username'] = user.username
+                    request.session['email'] = user.email
                     request.session['rol_id'] = str(user.rol.id)  
 
                     if user.rol.id == 1:
                         return redirect('home')
                     elif user.rol.id == 2:
                         return redirect('AdminHome')
-                    elif user.rol.id == 3:
-                        return redirect('home')
+                    # elif user.rol.id == 3:
+                    #     return redirect('pickerHome')
                 else:
                     has_error['cred_error'] = 'Las Credenciales no Coinciden'
             except Usuario.DoesNotExist:
@@ -232,7 +233,7 @@ def RenderUserCatalog(request):
         categorias_con_productos = CategoriaProducto.objects.filter(producto__isnull=False).distinct()
         productos = Producto.objects.filter(categoria__in=categorias_con_productos)
 
-        return render(request, 'usuario/catalog.html', {'categorias': categorias_con_productos, 'productos': productos})
+        return render(request, 'usuario/catalog.html', {'categorias': categorias_con_productos, 'productos': productos, 'carrito': carrito})
 
 def RenderAbout(request):
     return render(request, 'usuario/about.html')

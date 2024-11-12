@@ -22,6 +22,19 @@
     <li class="nav-item">
         <a href="{% url 'FAQ' %}" class="nav-link text-decoration-underline">Contacto</a>
     </li>
+
+    <!-- Botón del carrito de compras -->
+    {% if request.session.user_id != 2 %}
+    <div class="ms-auto cart-btn">
+        <a href="{% url 'cart' %}" class="nav-link text-white" title="Carrito de compras">
+            <i class="fas fa-shopping-cart"></i>
+            <!-- Aquí se puede añadir un contador dinámico si es necesario -->
+            {% if cart_items %}
+            <span class="badge">{{ cart_items|length }}</span>
+            {% endif %}
+        </a>
+    </div>
+    {% endif %}
 {% endblock %}
 
 {% block content %}
@@ -36,29 +49,32 @@
                         <div class="col">
                             <div class="d-flex overflow-auto flex-nowrap">
                                 {% for producto in productos %}
-                                    {% if producto.categoria.id == categoria.id %}
-                                        <div class="card mx-2 shadow-lg" style="min-width: 200px; max-width: 220px; border: 1px solid #ff9999; border-radius: 15px;">
-                                            <div class="card-body text-center">
-                                                <a href="#">
-                                                    <img src="{{ producto.imagen.url }}" alt="Imagen de {{ producto.nombre }}" class="img-fluid" style="height: 12rem; object-fit: cover; border-radius: 10px;">
-                                                </a>
+                                    {% if producto.disponible %}
+                                        {% if producto.categoria.id == categoria.id %}
+                                            <div class="card mx-2 shadow-lg" style="min-width: 200px; max-width: 220px; border: 1px solid #ff9999; border-radius: 15px;">
+                                                <div class="card-body text-center">
+                                                    <a href="#">
+                                                        <img src="{{ producto.imagen.url }}" alt="Imagen de {{ producto.nombre }}" class="img-fluid" style="height: 12rem; object-fit: cover; border-radius: 10px;">
+                                                    </a>
+                                                </div>
+                                                <div class="card-footer text-center">
+                                                    <p class="card-title mb-0" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                                        {{ producto.nombre }}
+                                                    </p>
+                                                    <p class="card-text mb-2 text-success">{{ producto.precio_unitario }} CLP</p>
+                                                    
+                                                    <!-- Formulario para agregar al carrito -->
+                                                    <form method="POST" action="#">
+                                                        {% csrf_token %}
+                                                        <div class="d-flex justify-content-center align-items-center">
+                                                            <input type="number" name="cantidad" min="1" value="1" class="form-control mt-2" style="max-width: 80px;">
+
+                                                            <button type="submit" class="btn btn-warning mt-2 ms-2" style="width: 120px; border-radius: 5px; font-weight: bold;">Añadir al Carrito</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
                                             </div>
-                                            <div class="card-footer text-center">
-                                                <p class="card-title mb-0" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                                    {{ producto.nombre }}
-                                                </p>
-                                                <p class="card-text mb-2 text-success">{{ producto.precio_unitario }} CLP</p>
-                                                
-                                                <!-- Formulario para agregar al carrito -->
-                                                <form method="POST" action="#">
-                                                    {% csrf_token %}
-                                                    <div class="d-flex justify-content-center align-items-center">
-                                                        <input type="number" name="cantidad" min="1" value="1" class="form-control mt-2" style="max-width: 80px;">
-                                                        <button type="submit" class="btn btn-warning mt-2 ms-2" style="width: 120px; border-radius: 5px; font-weight: bold;">Añadir al Carrito</button>
-                                                    </div>
-                                                </form>
-                                            </div>
-                                        </div>
+                                        {% endif %}
                                     {% endif %}
                                 {% endfor %}
                             </div>

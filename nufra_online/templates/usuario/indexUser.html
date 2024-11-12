@@ -22,7 +22,22 @@
     <li class="nav-item">
         <a href="{% url 'FAQ' %}" class="nav-link text-decoration-underline">Contacto</a>
     </li>
+
+    <!-- Botón del carrito de compras -->
+    {% if request.session.user_id != 2 %}
+    <div class="ms-auto cart-btn">
+        <a href="{% url 'cart' %}" class="nav-link text-white" title="Carrito de compras">
+            <i class="fas fa-shopping-cart"></i>
+            <!-- Aquí se puede añadir un contador dinámico si es necesario -->
+            {% if cart_items %}
+            <span class="badge">{{ cart_items|length }}</span>
+            {% endif %}
+        </a>
+    </div>
+    {% endif %}
 {% endblock %}
+
+
 
 {% block content %}
 <section class="home-container py-5 bg-light">
@@ -100,6 +115,7 @@
 
 </section>
 <img class="img-fluid w-100" src="{% static '/images/Shop/ms.png' %}" alt="Ministerio de salud" style="max-height: 400px; object-fit: cover;">
+
 
 
 <style>

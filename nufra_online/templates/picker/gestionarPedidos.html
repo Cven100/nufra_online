@@ -1,0 +1,38 @@
+{% extends 'shared/baseIndex.html' %}
+{% load static %}
+
+{% block title %}Gestionar Pedidos{% endblock %}
+
+{% block brand %}
+<a href="{% url 'home' %}" class="navbar-brand d-flex align-items-center">
+    <img class="img-fluid d-block mx-auto" style="max-height: 5rem;" src="{% static 'images/Logo.png' %}" alt="Logo">
+</a>
+{% endblock %}
+
+{% block navitems %}
+    <li class="nav-item">
+        <a href="{% url 'home' %}" class="nav-link text-decoration-underline">Inicio</a>
+    </li>
+    <li class="nav-item">
+        <a href="{% url 'gestionar_pedidos' %}" class="nav-link text-decoration-underline">Gestionar Pedidos</a>
+    </li>
+    <li class="nav-item">
+        <a href="{% url 'visualizar_stock' %}" class="nav-link text-decoration-underline">Visualizar Stock</a>
+    </li>
+{% endblock %}
+
+{% block content %}
+<section class="content-container py-5 bg-light">
+    <h1 class="text-center text-danger fw-bold mb-5">Gestión de Pedidos</h1>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <a href="{% url 'visualizar_pedidos' %}" class="btn btn-primary w-100">Visualizar Pedidos</a>
+            </div>
+            <div class="col-md-6">
+                <a href="{% url 'actualizar_estado' %}" class="btn btn-secondary w-100">Actualizar Estado</a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
