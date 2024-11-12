@@ -74,15 +74,9 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav mt-3 w-100">
                     {% block home %}
-                    {% if request.session.rol_id == '1' %}
+                    {% if request.session.rol_id == '2' %}
                         <li class="nav-item">
                             <a href="{% url 'AdminHome' %}" class="nav-link">
-                                <i class="fa-solid fa-house-user"></i>
-                            </a>
-                        </li>
-                    {% elif request.session.rol_id == '2' %}
-                        <li class="nav-item">
-                            <a href="{% url 'VenHome' %}" class="nav-link">
                                 <i class="fa-solid fa-house-user"></i>
                             </a>
                         </li>
@@ -99,6 +93,7 @@
                 </ul>
 
                 <!-- Botón del carrito de compras -->
+                {% if request.session.user_id != 2 %}
                 <div class="ms-auto cart-btn">
                     <a href="{% url 'cart' %}" class="nav-link text-white" title="Carrito de compras">
                         <i class="fas fa-shopping-cart"></i>
@@ -108,7 +103,7 @@
                         {% endif %}
                     </a>
                 </div>
-
+                {% endif %}
                 <!-- Botón de login o logout -->
                 <div class="ms-auto">
                     {% if request.session.user_id %}

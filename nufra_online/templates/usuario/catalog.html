@@ -50,7 +50,7 @@
                                                 <p class="card-text mb-2 text-success">{{ producto.precio_unitario }} CLP</p>
                                                 
                                                 <!-- Formulario para agregar al carrito -->
-                                                <form method="POST" action="{% url 'agregar_a_carrito' producto.id %}">
+                                                <form method="POST" action="#">
                                                     {% csrf_token %}
                                                     <div class="d-flex justify-content-center align-items-center">
                                                         <input type="number" name="cantidad" min="1" value="1" class="form-control mt-2" style="max-width: 80px;">

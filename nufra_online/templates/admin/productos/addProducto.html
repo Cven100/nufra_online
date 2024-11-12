@@ -1,104 +1,128 @@
-{% extends 'shared/base.html' %}
-{% load static %}
-
-{% block title %}Configuraciones{% endblock %}
-
+{% extends 'shared/base.html' %} {% load static %} 
+{% block title %}{% if producto %}Editar Producto{% else %}Agregar Producto{% endif %}{% endblock %} 
 {% block header %}
 <div class="container-fluid text-center py-4" style="background-color: #4a4063; margin-bottom: 4rem;">
-    <img class="img-fluid d-block mx-auto" style="max-height: 5rem;" src="{% static '/images/Logo.png' %}" alt="Logo">
+  <img
+    class="img-fluid d-block mx-auto"
+    style="max-height: 5rem"
+    src="{% static '/images/Logo.png' %}"
+    alt="Logo"
+  />
 </div>
-{% endblock %}
+{% endblock %} {% block content %}
+<div
+  class="container d-flex align-items-center justify-content-center"
+  style="height: 70vh"
+>
 
-{% block navitems %}
-<li class="nav-item">
-    <a href="{% url 'AdminHome' %}" class="nav-link">Inicio</a>
-</li>
-<li class="nav-item">
-    <a href="{% url 'Trabajadores' %}" class="nav-link">Gestión de Trabajadores</a>
-</li>
-<li class="nav-item">
-    <a href="{% url 'Reportes' %}" class="nav-link">Reportes</a>
-</li>
-<li class="nav-item">
-    <a href="{% url 'Config' %}" class="nav-link">Configuración Tienda</a>
-</li>
-<li class="nav-item">
-    <a href="{% url 'Register' %}" class="nav-link">Ingreso de Usuarios</a>
-</li>
-{% endblock %}
-
-{% block content %}
-<div class="container d-flex align-items-center justify-content-center" style="height: auto;">
-    <div class="card p-4 shadow mt-5" style="max-width: 32rem; width: 100%;">
-        <h4 class="h4" style="border-bottom: solid;">Categorías</h4>
-        <div class="table-responsive mt-3">
-            <div class="row">
-                <div class="col text-start">
-                    <a href="{% url 'productos' %}" class="btn btn-primary mx-auto">Volver</a>                         
-                </div>
-            </div>
-            <div class="row mt-3">
-                {% if editable %}
-                <h5>Editar Categoría</h5>
-                <form method="POST" action="{% url 'editCategoria' editable.id %}">
-                    {% csrf_token %}
-                    <input type="hidden" name="id" value="{{ editable.id }}">
-                    <div class="col-12">
-                        <label for="nombre">Nombre</label>
-                        <input type="text" class="form-control" id="nombre" name="nombre" maxlength="50" value="{{ editable.nombre }}">
-                        {% if errores.name_empty %}
-                        <span class="text-danger">{{ errores.name_empty }}</span>
-                        {% elif errores.name_max_char %}
-                        <span class="text-danger">{{ errores.name_max_char }}</span>
-                        {% endif %}
-                    </div>
-                    <button type="submit" class="btn btn-primary mt-3">Guardar Cambios</button>
-                </form>
-                {% else %}
-                <h5>Agregar Categoría</h5>
-                <form method="POST" action="{% url 'categorias' %}">
-                    {% csrf_token %}
-                    <div class="col-12">
-                        <label for="nombre">Nombre</label>
-                        <input type="text" class="form-control" id="nombre" name="nombre" maxlength="50">
-                        {% if errores.name_empty %}
-                        <span class="text-danger">{{ errores.name_empty }}</span>
-                        {% elif errores.name_max_char %}
-                        <span class="text-danger">{{ errores.name_max_char }}</span>
-                        {% endif %}
-                    </div>
-                    <button type="submit" class="btn btn-primary mt-3">Añadir</button>
-                </form>
-                {% endif %}
-            </div>
-            <table class="table table-hover mt-3">
-                <thead>
-                    <tr>
-                        <th>Nombre</th>
-                        <th>Disponibilidad</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody id="tableBody">
-                    {% if categorias %}
-                    {% for i in categorias %}
-                    <tr>
-                        <td>{{ i.nombre }}</td>
-                        <td>{% if i.disponible %}Disponible{% else %}No Disponible{% endif %}</td>
-                        <td>
-                            <a href="{% url 'editCategoria' i.id %}" class="btn btn-primary">Editar</a>
-                            <a href="{% url 'blockCategoria' i.id %}" class="btn btn-danger">(/)</a>
-                        </td> 
-                    </tr>
-                    {% endfor %}
-                    {% else %}
-                    <tr>
-                        <td colspan="3" class="text-center">No hay categorías disponibles.</td>
-                    </tr>
-                    {% endif %}
-                </tbody>
-            </table>
+  <div class="card p-4 shadow mt-5" style="max-width: 32rem; width: 100%;">
+    <form enctype="multipart/form-data" action="{% if producto %}{% url 'editProducto' producto.id %}{% else %}{% url 'addProducto'%}{% endif %}" method="POST">
+      <h1 class="card-title text-center">
+      {% if producto %}Editar Producto{% else %}Añadir Producto{% endif %}
+      </h1>
+      {% csrf_token %}
+      <div class="form-group mt-3">
+        <label for="nombre" class="form-label">Nombre</label>
+        <input
+          type="text"
+          id="nombre"
+          name="nombre"
+          class="form-control"
+          placeholder="Carioca"
+          maxlength="150"
+          value="{% if producto %}{{ producto.nombre }}{% endif %}"
+        />
+        {% if errores.name_empty %}
+        <span class="text-danger">{{errores.name_empty}}</span>
+        {% elif errores.duplicado %}
+        <span class="text-danger">{{errores.duplicado}}</span>
+        {% elif errores.name_max_char %}
+        <span class="text-danger">{{errores.name_max_char}}</span>
+        {% elif errores.name_numerico %}
+        <span class="text-danger">{{errores.name_numerico}}</span>
+        {% endif %}
+      </div>
+      <div class="row mt-3">
+        <div class="col">
+          <label for="categoria" class="form-label">Categoria</label>
+          <select name="categoria" id="categoria" class="form-select">
+            <option value="-1">--Elija Categoria--</option>
+            {% for i in categorias %}
+            {% if i.disponible %}
+            <option value="{{i.id}}" {% if producto and producto.categoria.id == i.id %}selected{% endif %}>{{i.nombre}}</option>
+            {% endif %}
+            {% endfor %}
+          </select>
+          {% if errores.cate_default %}
+          <span class="text-danger">{{errores.cate_default}}</span>
+          {% endif %}
         </div>
-    </div>
+      </div>
+      <div class="form-group mt-3">
+        <label for="descripcion" class="form-label">Descripcion</label>
+        <textarea
+          class="form-control"
+          rows="4"
+          name="descripcion"
+          id="descripcion"
+          placeholder="Chocolate"
+        >{% if producto %}{{producto.descripcion}}{% endif %}</textarea>
+        {% if errores.des_empty %}
+        <span class="text-danger">{{errores.des_empty}}</span>
+        {% endif %}
+      </div>
+      <div class="row mt-3">
+        <div class="col-6">
+          <label for="precio" class="form-label">Precio Unitario</label>
+          <input
+            type="number"
+            id="precio"
+            name="precio"
+            class="form-control"
+            min="0"
+            value="{% if producto %}{{ producto.precio_unitario }}{% endif %}"
+          />
+          {% if errores.price_empty %}
+          <span class="text-danger">{{errores.price_empty}}</span>
+          {% elif errores.price_char_error %}
+          <span class="text-danger">{{errores.price_char_error}}</span>
+          {% endif %}
+        </div>
+        <div class="col-6">
+          <label for="fecha" class="form-label">Fecha Ingreso</label>
+          <input 
+            type="date" 
+            id="fecha" 
+            name="fecha" 
+            class="form-control" 
+            value="{% if producto %}{{ producto.fecha_ingreso|date:'Y-m-d' }}{% endif %}"
+          />
+          {% if errores.date_empty %}
+          <span class="text-danger">{{errores.date_empty}}</span>
+          {% elif errores.future_date %}
+          <span class="text-danger">{{errores.future_date}}</span>
+          {% elif errores.invalid_date %}
+          <span class="text-danger">{{errores.invalid_date}}</span>
+          {% endif %}
+        </div>
+      </div>
+      <div class="col mt-3">
+        <label for="imagen" class="form-label">Imagen del Producto</label>
+        <input type="file" name="imagen" id="imagen" class="form-control"  accept="image/*">
+        {% if producto %}
+          {% if producto.imagen %}
+          <label class="form-label">Imagen Actual</label>
+          <img src="{{producto.imagen.url}}" style="width: 4rem;" alt="Imagen del Producto">
+          {% else %}
+          <label class="form-label text-danger">No hay imagen asociada al producto</label>
+          {% endif %}
+        {% endif %}
+      </div>
+      <div class="col mt-3">
+        <a href="{% url 'productos' %}" class="btn btn-secondary">Volver</a>
+        <button type="submit" class="btn btn-primary">{% if producto %}Guardar Cambios{% else %}Añadir{% endif %}</button>
+      </div>
+    </form>
+  </div>
 </div>
 {% endblock %}

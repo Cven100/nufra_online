@@ -1,0 +1,22 @@
+{% extends 'shared/base.html' %}
+{% load static %}
+
+{% block title %}Registrarse - Confites Online{% endblock %}
+
+{% block header %}
+    <div class="container-fluid text-center py-4" style="background-color: #4A4063;">
+        <a href="{% url 'home' %}">
+            <img class="img-fluid d-block mx-auto" style="max-height: 5rem;" src="{% static '/images/Logo.png' %}" alt="Logo">
+        </a>
+    </div>
+{% endblock %}
+
+{% block content %}
+    <div class="col mx-5 mt-3">
+        <form method="POST">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="btn btn-primary">Registrar</button>
+        </form>
+    </div>
+{% endblock %}

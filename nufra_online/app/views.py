@@ -8,6 +8,8 @@ from django.contrib.auth.forms import UserCreationForm
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
+from app.forms import AddUserForm
+
 #MODEL
 from .models import Usuario,Administrador , Roles, Producto, CategoriaProducto, Inventario, Picker
 
@@ -89,7 +91,6 @@ def RenderLogin(request):
 # @admin_required
 def RenderRegister(request):
     roles = Roles.objects.all()
-    pickers = Picker.objects.all()
     if request.method == "POST":
         # USUARIO
         has_error = {}
@@ -99,11 +100,7 @@ def RenderRegister(request):
         rol = request.POST.get('rol')
         password = request.POST.get('password')
         confirm_password = request.POST.get('confirm_password')
-
-        # DE ROLES
         telefono = request.POST.get('telefono')
-
-        picker_select = request.POST.get('picker')
 
         
         # VALIDACIONES GENERALES
@@ -118,6 +115,9 @@ def RenderRegister(request):
             has_error['name_max_char'] = 'Se ha Superado el MAXIMO de Caracteres, MAXIMO Permitido: 150'
         else:
             nombre = nombre.title()
+
+        if telefono.strip() == "":
+            has_error['telefono_empty'] = 'El Campo TELEFONO no Puede Estar Vacio'
 
         if apellido.strip() == "":
             has_error['ape_empty'] = 'El Campo Apellido no Puede Estar Vacio'
@@ -151,9 +151,7 @@ def RenderRegister(request):
             has_error['con_pass_max_char'] = 'Se ha Superado el MAXIMO de Caracteres, MAXIMO Permitido: 128'
 
         if password != confirm_password:
-            has_error['password_final'] = 'Las contraseñas no coinciden'
-
-                    
+            has_error['password_final'] = 'Las contraseñas no coinciden'     
 
         # VALIDAR EXISTENCIA DEL OBJETO
 
@@ -162,23 +160,32 @@ def RenderRegister(request):
                 user = Administrador(
                     nombre=nombre,
                     apellido=apellido,
-                    username=username,
                     rol=Roles.objects.get(id=rol),
-                    correo= username + '@nufra.com',
+                    email= username + '@nufra.com',
+                    estado= 'Activo',
                     telefono=telefono
                 )
                 user.set_password(password)
                 user.save()
 
+            if rol == '3':
+                user = Picker(
+                    nombre=nombre,
+                    apellido=apellido,
+                    rol=Roles.objects.get(id=rol),
+                    email= username + '@nufra.com',
+                    estado= 'Activo',
+                    telefono=telefono
+                )
+                user.set_password(password)
+                user.save()
 
-
-
-            return render(request, 'admin/views/register.html', {'roles': roles, 'pickers': pickers})
+            return render(request, 'admin/views/register.html', {'roles': roles})
         else:
-            return render(request, 'admin/views/register.html', {'roles': roles, 'pickers': pickers, 'errores': has_error})
+            return render(request, 'admin/views/register.html', {'roles': roles, 'errores': has_error})
     
     elif request.method == "GET":
-        return render(request, 'admin/views/register.html', {'roles': roles, 'pickers': pickers})
+        return render(request, 'admin/views/register.html', {'roles': roles})
 
 # Usuario General
 
@@ -203,23 +210,24 @@ def agregar_a_carrito(request, producto_id):
 
 def register_view(request):
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = AddUserForm(request.POST)
         if form.is_valid():
-            form.save()
-            username = form.cleaned_data.get('username')
-            raw_password = form.cleaned_data.get('password1')
-            user = authenticate(username=username, password=raw_password)
-            login(request, user)
+            user = form.save(commit=False)
+            user.estado = 'n/a'
+            user.rol = Roles.objects.get(id=1)
+            user.set_password(form.cleaned_data['password'])
+            user.save()
             return redirect('home')
     else:
-        form = UserCreationForm()
-    return render(request, 'shared/register.html', {'form': form})
+        form = AddUserForm()
+    return render(request, 'usuario/register.html', {'form': form})
 
 def RenderUserHome(request):
     return render(request, 'usuario/indexUser.html')
 
 def RenderUserCatalog(request):
     if request.method == 'GET':
+        carrito = request.session.get("carrito", [])
         # Filtros para visualizar solo las categorias con productos 
         categorias_con_productos = CategoriaProducto.objects.filter(producto__isnull=False).distinct()
         productos = Producto.objects.filter(categoria__in=categorias_con_productos)
@@ -239,17 +247,11 @@ def RenderAdminHome(request):
 
 # @admin_required
 def RenderTrabajadores(request):
-    return render(request, 'admin/views/trabajadores.html')
+    users = Usuario.objects.all()
+    adm = Administrador.objects.all()
+    pick = Picker.objects.all()
+    return render(request, 'admin/views/trabajadores.html',{'users': users, 'adm': adm, 'pick': pick})
 
-# @admin_required
-def RenderReport(request):
-    # FALTA CONCRETAR LOS REPORTES (QUE SE MANDA Y COMO DEPENDIENDO DE CADA TIPO)
-    return render(request, 'admin/views/reportes.html')
-
-# @admin_required
-def RenderConfig(request):
-    if request.method == 'GET':
-        return render(request, 'admin/views/configTienda.html')
 
 
 # Categorias

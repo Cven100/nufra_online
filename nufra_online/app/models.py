@@ -12,8 +12,8 @@ class Usuario(models.Model):
     telefono = models.IntegerField(default=0)
     direccion = models.CharField(max_length=255, default="")
     password = models.CharField(max_length=128)
-    estado = models.CharField(max_length=30)
-    rol = models.ForeignKey(Roles, on_delete=models.CASCADE)
+    estado = models.CharField(max_length=30, blank=True, null=True)
+    rol = models.ForeignKey(Roles, on_delete=models.CASCADE, default=1)
 
     def set_password(self, raw_password):
         """Establecer la contraseña de forma segura."""
@@ -54,14 +54,14 @@ class OrdenesCompra(models.Model):
     usuario_id = models.ForeignKey(Usuario, on_delete=models.DO_NOTHING)
     producto = models.ForeignKey(Producto, on_delete=models.DO_NOTHING)
     estado = models.CharField(max_length=50, default="")
-    fecha_creacion = models.DateField()
-    fecha_entrega = models.DateField()
+    fecha_creacion = models.TimeField(auto_now_add=True)
+    fecha_entrega = models.TimeField(auto_now_add=True)
 
-class CarroCompra(models.Model):
-    usuario_id = models.ForeignKey(Usuario, on_delete=models.DO_NOTHING)
-    producto = models.ForeignKey(Producto, on_delete=models.DO_NOTHING)
-    cantidad = models.IntegerField(default=1)  # <-- Añadir este campo
-    total = models.FloatField()
+# class CarroCompra(models.Model):
+#     usuario_id = models.ForeignKey(Usuario, on_delete=models.DO_NOTHING)
+#     producto = models.ForeignKey(Producto, on_delete=models.DO_NOTHING)
+#     cantidad = models.IntegerField(default=1)  # <-- Añadir este campo
+#     total = models.FloatField()
 
 class Venta(models.Model):
     nro_boleta = models.IntegerField(default=0)

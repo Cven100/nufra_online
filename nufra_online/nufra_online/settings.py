@@ -81,7 +81,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'nufra_online',
         'USER': 'root',
-        'PASSWORD': '0808',
+        'PASSWORD': '',
     }
 }
 

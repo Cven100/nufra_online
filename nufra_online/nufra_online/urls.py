@@ -29,8 +29,8 @@ urlpatterns = [
 
     # Control de acceso
     path('login/', vistas.RenderLogin, name='Login'),
-    path('register/', vistas.RenderRegister, name='register'),
-    path('registerr/', vistas.register_view, name='Register'),
+    path('register/admin/', vistas.RenderRegister, name='RegisterADM'),
+    path('register/', vistas.register_view, name='RegisterUSER'),
     path('logout/', vistas.RenderLogout, name='LogOut'),
     
     # Usuario
@@ -38,18 +38,13 @@ urlpatterns = [
     path('acerca-de/', vistas.RenderAbout, name='About'),
     path('preguntas-frecuentes/', vistas.RenderFAQ, name='FAQ'),
     
-    #CARRO DE COMPRAS
+        #CARRO DE COMPRAS
     path('agregar-al-carro/<int:id>/', vistas.agregarAlCarro, name='agregarAlCarro'),  # Agregar producto al carrito
     path('detalle-carrito/', vistas.detalleCarrito, name='cart'),  # Detalles del carrito
-
-        
-
 
     # Admin
     path('home/admin/', vistas.RenderAdminHome, name='AdminHome'),
     path('home/admin/trabajadores/', vistas.RenderTrabajadores, name='Trabajadores'),
-    path('home/admin/reportes/', vistas.RenderReport, name='Reportes'),
-    path('home/admin/configuraciones/', vistas.RenderConfig, name='Config'),
     
         # Producto
     path('home/admin/config/productos/', vistas.RenderProducto, name='productos'),

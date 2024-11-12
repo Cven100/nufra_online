@@ -9,29 +9,12 @@
 </a>
 {% endblock %}
 
-{% block navitems %}
-<li class="nav-item">
-    <a href="{% url 'AdminHome' %}" class="nav-link">Inicio</a>
-</li>
-<li class="nav-item">
-    <a href="{% url 'Trabajadores' %}" class="nav-link">Gestión de Trabajadores</a>
-</li>
-<li class="nav-item">
-    <a href="{% url 'Reportes' %}" class="nav-link">Reportes</a>
-</li>
-<li class="nav-item">
-    <a href="{% url 'Config' %}" class="nav-link">Configuración Tienda</a>
-</li>
-<li class="nav-item">
-    <a href="{% url 'Register' %}" class="nav-link">Ingreso de Usuarios</a>
-</li>
-{% endblock %}
-
 {% block content %}
 <div class="container mt-4">
     <div class="row">
         <div class="col-12">
             <h4 class="h4 border-bottom pb-2">Lista de Trabajadores</h4>
+            <div class="text-end">
             <div class="table-responsive">
                 <table class="table table-striped">
                     <thead class="table-light">
@@ -40,11 +23,38 @@
                             <th>Nombre</th>
                             <th>Apellido</th>
                             <th>Correo</th>
-                            <th>Acción</th>
+                            <th>Estado</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Insertar datos -->
+                        {% for i in users %}
+                        {% if i.rol.id != 1 %}
+                        <tr>
+                            <td>{{ i.rol.nombre }}</td>
+                            <td>{{ i.nombre }}</td>
+                            
+                            {% for a in adm %}
+                            {% if a.usuario_ptr_id == i.id %}
+                            <td>{{ a.apellido }}</td>
+                            {% endif %}
+                            {% endfor %}
+
+                            {% for p in pick %}
+                            {% if p.usuario_ptr_id == i.id %}
+                            <td>{{ p.apellido }}</td>
+                            {% endif %}
+                            {% endfor %}
+                            
+                            <td>{{ i.email }}</td>
+                            <td>{{ i.estado }}</td>
+                            <td>
+                                <a href="#" class="btn btn-primary"><i class="fa-solid fa-pen-to-square"></i></a>
+                                <a href="#" class="{% if i.disponible %}btn btn-success{% else %}btn btn-danger{% endif %}">
+                                <i class="fa-solid fa-store-slash"></i>
+                            </td>
+                        </tr>
+                        {% endif %}
+                        {% endfor %}
                     </tbody>
                 </table>
             </div>
