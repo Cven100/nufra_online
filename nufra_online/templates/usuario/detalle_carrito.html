@@ -1,0 +1,60 @@
+{% extends 'shared/baseIndex.html' %}
+{% load static %}
+
+{% block title %}Detalle Carrito{% endblock title %}
+
+{% block brand %}
+<a href="{% url 'home' %}" class="navbar-brand d-flex align-items-center">
+    <img class="img-fluid d-block mx-auto" style="max-height: 5rem;" src="{% static 'images/Logo.png' %}" alt="Logo de la tienda de confites">
+</a>
+{% endblock %}
+
+{% block navitems %}
+    <li class="nav-item">
+        <a href="{% url 'home' %}" class="nav-link text-decoration-underline">Inicio</a>
+    </li>
+    <li class="nav-item">
+        <a href="{% url 'Catalog' %}" class="nav-link text-decoration-underline">Productos</a>
+    </li>
+    <li class="nav-item">
+        <a href="{% url 'About' %}" class="nav-link text-decoration-underline">Sedes</a>
+    </li>
+    <li class="nav-item">
+        <a href="{% url 'FAQ' %}" class="nav-link text-decoration-underline">Contacto</a>
+    </li>
+{% endblock %}
+
+{% block content %}
+
+{% if productos %}
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>NOMBRE</th>
+            <th>STOCK</th>
+            <th>PRECIO</th>
+            <th>ACCIONES</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for p in productos %}
+        <tr>
+            <td>{{p.id}}</td>
+            <td>{{p.nombre}}</td>
+            <td>{{p.stock}}</td>
+            <td>{{p.precio}}</td>
+            <td>
+                <a href="{% url "agregarAlCarro" p.id %}" class="btn btn-danger">
+                    <i class="fa-solid fa-cart-shopping"></i> Quitar del Carro
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+    <h2>No hay registro de productos aún</h2>
+{% endif %}
+
+{% endblock content %}

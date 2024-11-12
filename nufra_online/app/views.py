@@ -592,3 +592,32 @@ def RenderVenHome(request):
 # @admin_required
 def RenderVentas(request):
     return render(request, 'vendedor/ventas.html')
+
+
+
+
+
+def inicio(request):
+    # Obtenemos los productos del carrito (IDs almacenados en la sesión)
+    carrito = request.session.get("carrito", [])
+    # Obtenemos todos los productos disponibles
+    productos = Producto.objects.all()
+    # Pasamos el número de productos en el carrito al template
+    return render(request, "inicio.html", {"productos": productos, "carrito": len(carrito)})
+
+def agregarAlCarro(request, id):
+    # Si el carrito no existe en la sesión, se inicializa como lista vacía
+    carrito = request.session.get("carrito", [])
+    # Agregamos el ID del producto al carrito
+    carrito.append(id)
+    # Guardamos el carrito actualizado en la sesión
+    request.session["carrito"] = carrito
+    return inicio(request)  # Volvemos a la página de inicio
+
+def detalleCarrito(request):
+    # Obtenemos los IDs de los productos en el carrito
+    idsProductos = request.session.get("carrito", [])
+    # Consultamos los productos correspondientes a esos IDs
+    productos = Producto.objects.filter(id__in=idsProductos)
+    
+    return render(request, "usuario/detalle_carrito.html", {"productos": productos})

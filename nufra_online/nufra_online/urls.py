@@ -37,9 +37,12 @@ urlpatterns = [
     path('catalogo/', vistas.RenderUserCatalog, name='Catalog'),
     path('acerca-de/', vistas.RenderAbout, name='About'),
     path('preguntas-frecuentes/', vistas.RenderFAQ, name='FAQ'),
-    path('agregar-a-carrito/<int:producto_id>/', vistas.agregar_a_carrito, name='agregar_a_carrito'),
+    
+    #CARRO DE COMPRAS
+    path('agregar-al-carro/<int:id>/', vistas.agregarAlCarro, name='agregarAlCarro'),  # Agregar producto al carrito
+    path('detalle-carrito/', vistas.detalleCarrito, name='cart'),  # Detalles del carrito
 
-        #CARRO DE COMPRAS
+        
 
 
     # Admin

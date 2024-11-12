@@ -38,6 +38,21 @@
             font-size: 1.5rem;
             vertical-align: middle;
         }
+        /* Estilo específico para el botón del carrito */
+        .cart-btn {
+            position: relative;
+            padding: 1rem;
+        }
+        .cart-btn .badge {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background-color: #ff0000;
+            color: white;
+            border-radius: 50%;
+            padding: 0.2rem 0.5rem;
+            font-size: 0.8rem;
+        }
     </style>
 </head>
 <body>
@@ -82,6 +97,17 @@
                     {% block navitems %}
                     {% endblock %}
                 </ul>
+
+                <!-- Botón del carrito de compras -->
+                <div class="ms-auto cart-btn">
+                    <a href="{% url 'cart' %}" class="nav-link text-white" title="Carrito de compras">
+                        <i class="fas fa-shopping-cart"></i>
+                        <!-- Aquí se puede añadir un contador dinámico si es necesario -->
+                        {% if cart_items %}
+                        <span class="badge">{{ cart_items|length }}</span>
+                        {% endif %}
+                    </a>
+                </div>
 
                 <!-- Botón de login o logout -->
                 <div class="ms-auto">
