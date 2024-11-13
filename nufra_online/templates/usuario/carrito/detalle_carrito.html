@@ -13,7 +13,7 @@
     <li class="nav-item">
         <a href="{% url 'home' %}" class="nav-link text-decoration-underline">Inicio</a>
     </li>
-    <li class="nav-item">
+    <li class="nav-item">   
         <a href="{% url 'Catalog' %}" class="nav-link text-decoration-underline">Productos</a>
     </li>
     <li class="nav-item">
@@ -26,26 +26,28 @@
 
 {% block content %}
 
-{% if productos %}
+{% if request.session.carro %}
 <table class="table table-striped">
     <thead>
         <tr>
             <th>ID</th>
             <th>NOMBRE</th>
-            <th>STOCK</th>
+            <th>CANTIDAD</th>
             <th>PRECIO</th>
+            <th>TOTAL</th>
             <th>ACCIONES</th>
         </tr>
     </thead>
     <tbody>
-        {% for p in productos %}
+        {% for item in request.session.carro %}
         <tr>
-            <td>{{p.id}}</td>
-            <td>{{p.nombre}}</td>
-            <td>{{p.stock}}</td>
-            <td>{{p.precio}}</td>
+            <td>{{ item.id }}</td>
+            <td>{{ item.nombre }}</td>
+            <td>{{ item.cantidad }}</td>
+            <td>{{ item.precio }}</td>
+            <td>{{ item.cantidad|floatformat:2 }}</td>
             <td>
-                <a href="{% url "agregarAlCarro" p.id %}" class="btn btn-danger">
+                <a href="{% url 'DeleteItemCarro' item.id %}" class="btn btn-danger">
                     <i class="fa-solid fa-cart-shopping"></i> Quitar del Carro
                 </a>
             </td>
@@ -53,8 +55,9 @@
         {% endfor %}
     </tbody>
 </table>
+<a href="{% url 'VaciarCarro' %}" class="btn btn-success">Confirmar Compra</a>
 {% else %}
-    <h2>No hay registro de productos aún</h2>
+    <h2>No hay productos en el carrito.</h2>
 {% endif %}
 
 {% endblock content %}

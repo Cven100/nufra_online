@@ -4,7 +4,7 @@
 {% block title %}Inventario{% endblock %}
 
 {% block brand %}
-<a href="{% url 'SupHome' %}" class="navbar-brand">
+<a href="{% url 'AdminHome' %}" class="navbar-brand">
     <img class="img-fluid d-block mx-auto" style="max-height: 5rem;" src="{% static '/images/Logo.png' %}" alt="Logo">
 </a>
 {% endblock %}
@@ -13,14 +13,17 @@
 <div class="container">
     <div class="row mt-3">
         <h4 class="h4" style="border-bottom: solid;">Inventario Actual</h4>
-        <div class="table table-responsive mt-3">
-            {% if inventario %}
-                    <div class="row">
+        {% if inventario %}
+                    <div class="row mt-3">
+                        <div class="col text-start">
+                            <a href="{% url 'AdminHome' %}" class="btn btn-primary mx-auto">Volver</a>
+                        </div>
                         <div class="col text-end">
-                            <a href="#" class="btn btn-primary mx-auto">+</a>
+                            <a href="{% url 'addInventario' %}" class="btn btn-primary mx-auto">+</a>
                         </div>
                     </div>
-            {% endif %}
+        {% endif %}
+        <div class="table table-responsive mt-3">   
             <table class="table">
                 <thead>
                     <tr>
@@ -36,22 +39,24 @@
                     {% if not inventario %}
                     <tr id="emptyRow">
                         <td colspan="6" class="text-center">
-                          <a href="#" class="btn btn-primary">+</a>
+                          <a href="{% url 'addInventario' %}" class="btn btn-primary">+</a>
                         </td>
                     </tr>
                     {% else %}
                     {% for i in inventario %}
                     <tr>
-                        <td>i.producto.id</td>
-                        <td>i.nombre</td>
-                        <td>i.stock</td>
-                        <td>i.estado</td>
-                        <td>i.precio</td>
+                        <td>{{i.producto.id}}</td>
+                        <td>{{i.nombre}}</td>
+                        <td>{{i.stock_actual}}</td>
+                        <td>{% if i.disponible %}Disponible{% else %}No Disponible{% endif %}</td>
+                        <td>{{i.producto.precio_unitario}}</td>
                         <td>
-                            <a href="#" class="btn btn-primary"></a>
-                            <a href="#" class="btn btn-primary"></a>
-                            <a href="#" class="btn btn-primary"></a>
-                            <a href="#" class="btn btn-primary"></a>
+                            <a href="{% url 'editInventario' i.id %}" class="btn btn-primary">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </a>
+                            <a href="{% url 'blockInventario' i.id %}" class="{% if i.disponible %}btn btn-danger{% else %}btn btn-success{% endif %}">
+                                <i class="fa-solid fa-store-slash"></i>
+                            </a>
                         </td>
                     </tr>
                     {% endfor %}

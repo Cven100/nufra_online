@@ -1,5 +1,5 @@
 import datetime
-
+from django.contrib import messages
 #SESSION
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout, authenticate, login
@@ -11,7 +11,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from app.forms import AddUserForm
 
 #MODEL
-from .models import Usuario,Administrador , Roles, Producto, CategoriaProducto, Inventario, Picker
+from .models import Usuario,Administrador , Roles, Producto, CategoriaProducto, Inventario, Picker, OrdenesCompra
 
 #DECORADORES DE SESSION
 def admin_required(view_func):
@@ -527,13 +527,14 @@ def RenderSupHome(request):
 
 # @admin_required
 def RenderSupInventario(request):
-    inventario = Inventario.objects.all()
-    return render(request, 'supervisor/inventario.html', {'inventario': inventario})
+    if request.method == 'GET':
+        inventario = Inventario.objects.all()
+        return render(request, 'admin/inventario/inventario.html', {'inventario': inventario})
 
 # @admin_required
 def AddInventario(request):
     productos = Producto.objects.all()
-    inventario = Inventario.objects.all()
+    existencia = Inventario.objects.all()
     has_error = {}
     if request.method == 'POST':
         producto_id = request.POST.get('producto')
@@ -563,6 +564,9 @@ def AddInventario(request):
             except ValueError:
                 has_error['invalid_date'] = 'Fecha Ingresada Invalida'
         
+        if Inventario.objects.filter(producto_id=producto_id).exists():
+                has_error['duplicado'] = "Ya existe un registro en el inventario para este producto."
+            
         if not has_error:
             producto = Producto.objects.get(id=producto_id)
             nuevo_inventario = Inventario(
@@ -573,20 +577,93 @@ def AddInventario(request):
                 fecha_actualizacion=fecha
             )
             nuevo_inventario.save()
-            return redirect('SupInvent') 
-    
+            return redirect('inventario') 
+        else:
+            return render(request, 'admin/inventario/addInventario.html', {'productos': productos, 'errores': has_error, 'existencia': existencia})
+
     elif request.method == 'GET':
-        return render(request, 'supervisor/inventario/addInventario.html', {'productos': productos, 'inventario': inventario})
+        return render(request, 'admin/inventario/addInventario.html', {'productos': productos, 'existencia': existencia})
+
+# @admin_required
+def EditInventario(request, id):
+    inventario = Inventario.objects.get(id=id)  # Obtener el inventario a editar
+    productos = Producto.objects.all()  # Obtener todos los productos disponibles
+    has_error = {}
+
+    if request.method == 'POST':
+        # Obtener los datos del formulario
+        producto_id = request.POST.get('producto')
+        stock = request.POST.get('stock_actual')
+        descripcion = request.POST.get('descripcion')
+        fecha = request.POST.get('fecha_actualizacion')
+
+        # Validaciones
+        if producto_id == '-1':
+            has_error['producto_empty'] = "Debe seleccionar un producto."
+        
+        if not stock:
+            has_error['stock_empty'] = "El stock no puede estar vacío."
+        elif not stock.isdigit() or int(stock) < 0:
+            has_error['stock_invalid'] = "El stock debe ser un número positivo."
+
+        if not descripcion:
+            has_error['descripcion_empty'] = "La descripción no puede estar vacía."
+
+        if not fecha:
+            has_error['fecha_empty'] = "La fecha de actualización es obligatoria."
+        else:
+            try:
+                fecha_valida = datetime.datetime.strptime(fecha, "%Y-%m-%d").date()
+                if fecha_valida > datetime.date.today():
+                    has_error['future_date'] = 'La Fecha de Ingreso NO Puede Estar en el FUTURO'
+            except ValueError:
+                has_error['invalid_date'] = 'Fecha Ingresada Invalida'
+
+        # Si no hay errores, actualizar el inventario
+        if not has_error:
+            producto = get_object_or_404(Producto, id=producto_id)
+            inventario.producto = producto
+            inventario.nombre = producto.nombre
+            inventario.stock_actual = int(stock)
+            inventario.descripcion = descripcion
+            inventario.fecha_actualizacion = fecha
+            inventario.save()
+
+            return redirect('inventario')  # Redirige a la vista de inventarios
+
+        # Si hay errores, renderizar el formulario con los errores
+        return render(request, 'admin/inventario/addInventario.html', {
+            'productos': productos,
+            'inventario': inventario,
+            'errores': has_error
+        })
+
+    elif request.method == 'GET':
+        # Si es una solicitud GET, renderizar el formulario con los datos del inventario
+        return render(request, 'admin/inventario/addInventario.html', {
+            'productos': productos,
+            'inventario': inventario
+        })
     
 # @admin_required
-def EditInventario(request):
-    if request.method == 'POST':
-        pass
+def BlockInventario(request, id):
+    if request.method == 'GET':
+        inventario = Inventario.objects.get(id=id)
+        if inventario.disponible:
+            try:
+                inventario.disponible = False
+                inventario.save()
+                return redirect('inventario')
+            except:
+                return HttpResponse(f"Error al deshabilitar el producto: {inventario.nombre}", status=404)
+        else:
+            try:
+                inventario.disponible = True
+                inventario.save()
+                return redirect('inventario')
+            except:
+                return HttpResponse("Error al habilitar el producto: {}".format(inventario.nombre), status=404)        
     
-    elif request.method == 'GET':
-        return render(request, 'supervisor/inventario/editInventario.html')
-
-
 # Vendedor
 # @admin_required
 def RenderVenHome(request):
@@ -595,8 +672,6 @@ def RenderVenHome(request):
 # @admin_required
 def RenderVentas(request):
     return render(request, 'vendedor/ventas.html')
-
-
 
 
 
@@ -623,4 +698,189 @@ def detalleCarrito(request):
     # Consultamos los productos correspondientes a esos IDs
     productos = Producto.objects.filter(id__in=idsProductos)
     
-    return render(request, "usuario/detalle_carrito.html", {"productos": productos})
+    return render(request, "usuario/carrito/detalle_carrito.html", {"productos": productos})
+
+
+# gestionar los pedidos VERIFICARRRRRRRRRRRRRRR 
+
+# def RenderPedido(request, id=None):
+#     if id is None:
+#         pedidos = OrdenesCompra.objects.all()
+#         return render (request, "picker/gestionarPedidos.html",{"pedidos:pedidos"})
+
+#     pedido = get_object_or_404(OrdenesCompra, id=id)
+
+#     if request.method=="POST" and "actualizarEstado" in request.POST:
+#         newestado= request.POST.get("estado")
+#         pedido.estado = newestado
+#         pedido.save()
+#         return redirect("visualizarPedidos",id=pedido.id)
+
+#     return render(request, "visualizarPedidos.html",{"pedido":pedido})
+
+# Vista para gestionar pedidos
+def RenderPedido(request):
+    # Obtener todos los pedidos (o filtrar según tus necesidades)
+    pedidos = OrdenesCompra.objects.all()
+    return render(request, 'picker/gestionarPedidos.html', {'pedidos': pedidos})
+
+# Vista para visualizar un pedido específico
+def VisualizarPedido(request):
+    # Obtener todos los pedidos
+    pedidos = OrdenesCompra.objects.all()
+    return render(request, 'picker/visualizarPedidos.html', {'pedidos': pedidos})
+
+# Vista para actualizar el estado de un pedido
+def ActualizarEstado(request):
+    if request.method == 'POST':
+        # Aquí agregarías la lógica para actualizar el estado de un pedido
+        # Ejemplo:
+        # pedido_id = request.POST.get('pedido_id')
+        # estado = request.POST.get('estado')
+        # Pedido.objects.filter(id=pedido_id).update(estado=estado)
+        return HttpResponse("Estado actualizado con éxito")
+
+    # Mostrar la página de actualizar estado
+    return render(request, 'picker/actualizarEstado.html')
+
+# Vista para visualizar el stock de productos
+def VisualizarStock(request):
+    productos = Producto.objects.all()  # Obtiene todos los productos
+    return render(request, "picker/visualizarStock.html", {"productos": productos})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Probando
+
+# Función para agregar productos al carrito
+def AddCarro(request, producto_id):
+    producto = get_object_or_404(Producto, id=producto_id)
+    cantidad = int(request.POST.get('cantidad', 1))
+    carro = request.session.get('carro', [])
+
+    # Verificar si el producto ya está en el carrito y aumentar la cantidad
+    for item in carro:
+        if item['id'] == producto.id:
+            item['cantidad'] += cantidad
+            break
+    else:
+        # Si el producto no está en el carrito, añadirlo con la cantidad seleccionada
+        carro.append({
+            'id': producto.id,
+            'nombre': producto.nombre,
+            'cantidad': cantidad,
+            'precio': producto.precio_unitario
+        })
+
+    # Guardar el carrito en la sesión
+    request.session['carro'] = carro
+    messages.success(request, 'Producto agregado al carrito.')
+    return redirect('detalle_carrito')  # Redirige a la vista de detalle del carrito
+
+# Función para eliminar un producto específico del carrito
+def DeleteItemCarro(request, producto_id):
+    carro = request.session.get('carro', [])
+    carro = [item for item in carro if item['id'] != producto_id]
+    request.session['carro'] = carro
+    messages.success(request, 'Producto eliminado del carrito.')
+    return redirect('detalle_carrito')  # Redirige a la vista de detalle del carrito
+
+
+
+# Función para vaciar el carrito y ajustar el stock
+def VaciarCarro(request):
+    carro = request.session.get('carro', [])
+    if carro:
+        for item in carro:
+            producto = get_object_or_404(Producto, id=item['id'])
+            producto.stock -= item['cantidad']
+            producto.save()
+
+        # Vaciar el carrito después de la compra
+        request.session['carro'] = []
+        messages.success(request, 'Compra confirmada. El stock ha sido actualizado.')
+    else:
+        messages.error(request, 'No hay productos en el carrito.')
+
+    return redirect('detalle_carrito')  # Redirige a la vista de detalle del carrito
+
+# Vista para mostrar los detalles del carrito
+def DetalleCarrito(request):
+    carro = request.session.get('carro', [])
+    total = sum(item['precio'] * item['cantidad'] for item in carro)
+    return render(request, 'usuario/carrito/detalle_carrito.html', {'carro': carro, 'total': total})

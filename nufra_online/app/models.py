@@ -49,6 +49,7 @@ class Inventario(models.Model):
     stock_actual = models.IntegerField()
     descripcion = models.TextField()
     fecha_actualizacion = models.DateField()
+    disponible = models.BooleanField(default=True)
 
 class OrdenesCompra(models.Model):
     usuario_id = models.ForeignKey(Usuario, on_delete=models.DO_NOTHING)
@@ -57,6 +58,31 @@ class OrdenesCompra(models.Model):
     fecha_creacion = models.TimeField(auto_now_add=True)
     fecha_entrega = models.TimeField(auto_now_add=True)
 
+
+# EN PROCESO
+# class OrdenesCompra(models.Model):
+#     # Relación con Usuario y Producto
+#     usuario_id = models.ForeignKey('Usuario', on_delete=models.DO_NOTHING)
+#     producto = models.ForeignKey('Producto', on_delete=models.DO_NOTHING)
+
+#     # Campo de Estado con opciones limitadas
+#     ESTADOS = [
+#         ('Pendiente', 'Pendiente'),
+#         ('Enviado', 'Enviado'),
+#         ('Entregado', 'Entregado'),
+#         ('Cancelado', 'Cancelado'),
+#     ]
+#     estado = models.CharField(max_length=50, choices=ESTADOS, default='Pendiente')
+
+#     # Fechas de creación y entrega (DateTimeField para almacenar fecha y hora)
+#     fecha_creacion = models.DateTimeField(auto_now_add=True)
+#     fecha_entrega = models.DateTimeField(null=True, blank=True)  # Puede ser null si no se ha entregado aún
+
+#     def __str__(self):
+#         return f"Orden #{self.id} - {self.estado}"
+
+
+# EN PROCESO
 # class CarroCompra(models.Model):
 #     usuario_id = models.ForeignKey(Usuario, on_delete=models.DO_NOTHING)
 #     producto = models.ForeignKey(Producto, on_delete=models.DO_NOTHING)

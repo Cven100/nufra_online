@@ -1,0 +1,93 @@
+{% extends 'shared/base.html' %} {% load static %} 
+{% block title %}{% if inventario %}Editar Inventario{% else %}Agregar al Inventario{% endif %}{% endblock %} 
+{% block header %}
+<div class="container-fluid text-center py-4" style="background-color: #4a4063; margin-bottom: 4rem;">
+  <img
+    class="img-fluid d-block mx-auto"
+    style="max-height: 5rem"
+    src="{% static '/images/Logo.png' %}"
+    alt="Logo"
+  />
+</div>
+{% endblock %} 
+
+{% block content %}
+<div class="container d-flex align-items-center justify-content-center" style="height: 70vh">
+  <div class="card p-4 shadow mt-5" style="max-width: 32rem; width: 100%;">
+    <form action="{% if inventario %}{% url 'editInventario' inventario.id %}{% else %}{% url 'addInventario' %}{% endif %}" method="POST">
+      <h1 class="card-title text-center">
+        {% if inventario %}Editar Inventario{% else %}Añadir Inventario{% endif %}
+      </h1>
+      {% csrf_token %}
+      <div class="form-group mt-3">
+        <label for="producto" class="form-label">Producto</label>
+        <select name="producto" id="producto" class="form-select">
+          <option value="-1">--Seleccione Producto--</option>
+          {% for i in productos %}
+          {% for existe in existencia %}
+          {% if i.id != existe.id %}
+          <option value="{{i.id}}" {% if inventario and inventario.producto.id == i.id %}selected{% endif %}>{{i.nombre}}</option>
+          {% endif %}
+          {% endfor%}
+          {% endfor %}
+        </select>
+        {% if errores.producto_empty %}
+        <span class="text-danger">{{errores.producto_empty}}</span>
+        {% elif errores.duplicado %}
+        <span class="text-danger">{{errores.duplicado}}</span>
+        {% endif %}
+      </div>
+      <div class="form-group mt-3">
+        <label for="stock_actual" class="form-label">Stock Actual</label>
+        <input
+          type="number"
+          id="stock_actual"
+          name="stock_actual"
+          class="form-control"
+          min="0"
+          value="{% if inventario %}{{ inventario.stock_actual }}{% endif %}"
+        />
+        {% if errores.stock_empty %}
+        <span class="text-danger">{{errores.stock_empty}}</span>
+        {% elif errores.stock_invalid %}
+        <span class="text-danger">{{errores.stock_invalid}}</span>
+        {% endif %}
+      </div>
+      <div class="form-group mt-3">
+        <label for="descripcion" class="form-label">Descripción</label>
+        <textarea
+          class="form-control"
+          rows="4"
+          name="descripcion"
+          id="descripcion"
+          placeholder="Descripción del inventario"
+        >{% if inventario %}{{ inventario.descripcion }}{% endif %}</textarea>
+        {% if errores.descripcion_empty %}
+        <span class="text-danger">{{errores.descripcion_empty}}</span>
+        {% endif %}
+      </div>
+      <div class="form-group mt-3">
+        <label for="fecha_actualizacion" class="form-label">Fecha de Actualización</label>
+        <input 
+          type="date" 
+          id="fecha_actualizacion" 
+          name="fecha_actualizacion" 
+          class="form-control" 
+          value="{% if inventario %}{{ inventario.fecha_actualizacion|date:'Y-m-d' }}{% endif %}"
+        />
+        {% if errores.fecha_empty %}
+        <span class="text-danger">{{errores.fecha_empty}}</span>
+        {% elif errores.fecha_invalid %}
+        <span class="text-danger">{{errores.fecha_invalid}}</span>
+        {% elif errores.future_date %}
+        <span class="text-danger">{{errores.future_date}}</span>
+        {% endif %}
+      </div>
+      <div class="col mt-3">
+        <a href="{% url 'inventario' %}" class="btn btn-secondary">Volver</a>
+        <button type="submit" class="btn btn-primary">{% if inventario %}Guardar Cambios{% else %}Añadir{% endif %}</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

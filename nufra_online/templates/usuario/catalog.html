@@ -17,7 +17,7 @@
         <a href="{% url 'Catalog' %}" class="nav-link text-decoration-underline">Productos</a>
     </li>
     <li class="nav-item">
-        <a href="{% url 'About' %}" class="nav-link text-decoration-underline">Sedes</a>
+        <a href="{% url 'About' %}" class="nav-link text-decoration-underline">Sede</a>
     </li>
     <li class="nav-item">
         <a href="{% url 'FAQ' %}" class="nav-link text-decoration-underline">Contacto</a>
@@ -53,9 +53,13 @@
                                         {% if producto.categoria.id == categoria.id %}
                                             <div class="card mx-2 shadow-lg" style="min-width: 200px; max-width: 220px; border: 1px solid #ff9999; border-radius: 15px;">
                                                 <div class="card-body text-center">
+                                                    {% if producto.imagen.url != none %}
                                                     <a href="#">
                                                         <img src="{{ producto.imagen.url }}" alt="Imagen de {{ producto.nombre }}" class="img-fluid" style="height: 12rem; object-fit: cover; border-radius: 10px;">
                                                     </a>
+                                                    {% else %}
+                                                    <p class="text-danger">No hay Imagen Disponible</p>
+                                                    {% endif %}
                                                 </div>
                                                 <div class="card-footer text-center">
                                                     <p class="card-title mb-0" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
