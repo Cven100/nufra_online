@@ -45,7 +45,7 @@
             <td>{{ item.nombre }}</td>
             <td>{{ item.cantidad }}</td>
             <td>{{ item.precio }}</td>
-            <td>{{ item.cantidad|floatformat:2 }}</td>
+            <td>{{ item.subtotal }}</td>
             <td>
                 <a href="{% url 'DeleteItemCarro' item.id %}" class="btn btn-danger">
                     <i class="fa-solid fa-cart-shopping"></i> Quitar del Carro
@@ -55,7 +55,12 @@
         {% endfor %}
     </tbody>
 </table>
+{% if request.session.user_id%}
 <a href="{% url 'VaciarCarro' %}" class="btn btn-success">Confirmar Compra</a>
+{% else %}
+<a href="{% url 'Login' %}" class="btn btn-success">Confirmar Compra</a>
+
+{% endif %}
 {% else %}
     <h2>No hay productos en el carrito.</h2>
 {% endif %}

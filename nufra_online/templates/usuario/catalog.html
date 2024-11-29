@@ -39,7 +39,7 @@
 
 {% block content %}
 <section class="catalog-container py-5 bg-light">
-    <h1 class="text-center text-danger fw-bold mb-5" style="font-family: 'Comic Sans MS', cursive, sans-serif;">Catálogo</h1>
+    <h1 class="text-center text-danger fw-bold mb-5">Catálogo</h1>
     <div class="container">
         {% if categorias %}
             {% for categoria in categorias %}
@@ -68,10 +68,10 @@
                                                     <p class="card-text mb-2 text-success">{{ producto.precio_unitario }} CLP</p>
                                                     
                                                     <!-- Formulario para agregar al carrito -->
-                                                    <form method="POST" action="#">
+                                                    <form method="POST" action="{% url 'AddCarro' producto.id %}">
                                                         {% csrf_token %}
                                                         <div class="d-flex justify-content-center align-items-center">
-                                                            <input type="number" name="cantidad" min="1" value="1" class="form-control mt-2" style="max-width: 80px;">
+                                                            <input type="number" name="cantidad" min="1" class="form-control mt-2" style="max-width: 80px;">
 
                                                             <button type="submit" class="btn btn-warning mt-2 ms-2" style="width: 120px; border-radius: 5px; font-weight: bold;">Añadir al Carrito</button>
                                                         </div>

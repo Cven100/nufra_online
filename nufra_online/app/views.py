@@ -11,7 +11,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from app.forms import AddUserForm
 
 #MODEL
-from .models import Usuario,Administrador , Roles, Producto, CategoriaProducto, Inventario, Picker, OrdenesCompra
+from .models import DetalleVenta, Usuario,Administrador , Roles, Producto, CategoriaProducto, Inventario, Picker, OrdenesCompra, Venta
 
 #DECORADORES DE SESSION
 def admin_required(view_func):
@@ -40,7 +40,7 @@ def RenderLogin(request):
         has_error = {}
         chars_restringidos_user = [
             ' ', '..', '(', ')', '<', '>', '[',
-            ']', ',', ';', ':', '"', '@'
+            ']', ',', ';', ':', '"'
             ]
         
         username = request.POST.get('username')
@@ -66,20 +66,22 @@ def RenderLogin(request):
             
         if not has_error:
             try:
-                username = username + '@nufra.com'
+                username = username
                 user = Usuario.objects.get(email=username)
                 if user.check_password(password):
                     # SESSION DATA
                     request.session['user_id'] = user.id
                     request.session['email'] = user.email
-                    request.session['rol_id'] = str(user.rol.id)  
+                    request.session['rol_id'] = str(user.rol.id) 
 
                     if user.rol.id == 1:
+                        # ESTO QUITARLO SI DA DRAMA ES PARA EL CARRO
+                        request.session['rut'] = user.rut  
                         return redirect('home')
                     elif user.rol.id == 2:
                         return redirect('AdminHome')
-                    # elif user.rol.id == 3:
-                    #     return redirect('pickerHome')
+                    elif user.rol.id == 3:
+                        return redirect('pickerHome')
                 else:
                     has_error['cred_error'] = 'Las Credenciales no Coinciden'
             except Usuario.DoesNotExist:
@@ -89,7 +91,7 @@ def RenderLogin(request):
     elif request.method == "GET":
         return render(request, 'shared/login.html')
 
-# @admin_required
+@admin_required
 def RenderRegister(request):
     roles = Roles.objects.all()
     if request.method == "POST":
@@ -198,7 +200,7 @@ def agregar_a_carrito(request, producto_id):
     # Suponiendo que el carrito se guarda en la sesión o en otro modelo.
 
     # Por ejemplo, si el carrito es un diccionario en la sesión:
-    carrito = request.session.get('carrito', {})
+    carrito = request.session.get('carrito', [])
     if producto_id in carrito:
         carrito[producto_id] += cantidad
     else:
@@ -228,12 +230,102 @@ def RenderUserHome(request):
 
 def RenderUserCatalog(request):
     if request.method == 'GET':
-        carrito = request.session.get("carrito", [])
+        carrito = request.session.get("carro", [])
+        user_id = request.session.get('user_id', None)
         # Filtros para visualizar solo las categorias con productos 
         categorias_con_productos = CategoriaProducto.objects.filter(producto__isnull=False).distinct()
         productos = Producto.objects.filter(categoria__in=categorias_con_productos)
 
-        return render(request, 'usuario/catalog.html', {'categorias': categorias_con_productos, 'productos': productos, 'carrito': carrito})
+        return render(request, 'usuario/catalog.html', {
+            'categorias': categorias_con_productos, 
+            'productos': productos, 
+            'carro': carrito,
+            'user_id': user_id,
+            })
+    
+### Probando ###
+
+# Función para agregar productos al carrito
+def AddCarro(request, producto_id):
+    producto = get_object_or_404(Producto, id=producto_id)
+    cantidad = int(request.POST.get('cantidad', 1))
+    carro = request.session.get('carro', [])
+
+    # Verificar si el producto ya está en el carrito y aumentar la cantidad
+    for item in carro:
+        if item['id'] == producto.id:
+            item['cantidad'] += cantidad
+            break
+    else:
+        # Si el producto no está en el carrito, añadirlo con la cantidad seleccionada
+        carro.append({
+            'id': producto.id,
+            'nombre': producto.nombre,
+            'cantidad': cantidad,
+            'precio': producto.precio_unitario,
+            'subtotal': producto.precio_unitario * cantidad
+        })
+        # Guardar el carrito en la sesión
+        request.session['carro'] = carro
+        messages.success(request, 'Producto agregado al carrito.')
+    return redirect('Catalog')
+
+# Función para eliminar un producto específico del carrito
+def DeleteItemCarro(request, producto_id):
+    carro = request.session.get('carro', [])
+    carro = [item for item in carro if item['id'] != producto_id]
+    request.session['carro'] = carro
+    messages.success(request, 'Producto eliminado del carrito.')
+    return redirect('cart')  # Redirige a la vista de detalle del carrito
+
+# Función para vaciar el carrito y ajustar el stock
+def VaciarCarro(request):
+    carro = request.session.get('carro', [])
+    if carro:
+        user = Usuario.objects.get(rut=request.session.get('rut', None))
+        venta = Venta.objects.create(
+            rut_cliente=user,  # Asumimos que el usuario está en la sesión
+            fecha=datetime.date.today(),
+            total=0,  # Esto se actualizará más tarde
+        )
+
+        total_compra = 0
+
+        for item in carro:
+            producto = get_object_or_404(Producto, id=item['id'])
+            inventario = Inventario.objects.get(producto=producto)
+            subtotal = item['subtotal']
+            total_compra += subtotal
+            
+            # Registrar el detalle de la venta
+            detalle = DetalleVenta.objects.create(
+                venta=venta,
+                producto=producto,
+                cantidad=item['cantidad'],
+                precio_unitario=item['precio'],
+                subtotal=subtotal
+            )
+            inventario.stock_actual -= item['cantidad']
+            inventario.save()
+
+        venta.total = total_compra
+        venta.save()
+
+        # Vaciar el carrito después de la compra
+        request.session['carro'] = []
+        messages.success(request, 'Compra confirmada. El stock ha sido actualizado.')
+    
+    else:
+        messages.error(request, 'No hay productos en el carrito.')
+
+    return redirect('cart')  # Redirige a la vista de detalle del carrito
+
+# Vista para mostrar los detalles del carrito
+def DetalleCarrito(request):
+    carro = request.session.get('carro', [])
+    total = sum(item['precio'] * item['cantidad'] for item in carro)
+    return render(request, 'usuario/carrito/detalle_carrito.html', {'carro': carro, 'total': total})
+
 
 def RenderAbout(request):
     return render(request, 'usuario/about.html')
@@ -242,11 +334,11 @@ def RenderFAQ(request):
     return render(request, 'usuario/faq.html')
 
 # Admin
-# @admin_required
+@admin_required
 def RenderAdminHome(request):
     return render(request, 'admin/views/indexAdmin.html')
 
-# @admin_required
+@admin_required
 def RenderTrabajadores(request):
     users = Usuario.objects.all()
     adm = Administrador.objects.all()
@@ -256,7 +348,7 @@ def RenderTrabajadores(request):
 
 
 # Categorias
-# @admin_required
+@admin_required
 def RenderCategorias(request):
     categorias = CategoriaProducto.objects.all()
     if request.method == 'POST':
@@ -280,7 +372,7 @@ def RenderCategorias(request):
     elif request.method == 'GET':
         return render(request, 'admin/productos/categorias/categorias.html', {'categorias': categorias})
 
-# @admin_required
+@admin_required
 def EditCategoria(request, id):
     categorias = CategoriaProducto.objects.all()
     categoria = get_object_or_404(CategoriaProducto, id=id)
@@ -314,7 +406,7 @@ def EditCategoria(request, id):
             'editable': categoria
         })
 
-# @admin_required 
+@admin_required 
 def BlockCategoria(request, id):
     if request.method == 'GET':
         categoria = CategoriaProducto.objects.get(id=id)
@@ -333,13 +425,13 @@ def BlockCategoria(request, id):
             except:
                 return HttpResponse("Error al Habilitar la Categoria: {}".format(categoria.nombre), status=404)        
 
-# @admin_required
+@admin_required
 def RenderProducto(request):
     productos = Producto.objects.all()
     if request.method == 'GET':
         return render(request, 'admin/productos/productos.html', {'productos': productos})
 
-# @admin_required 
+@admin_required 
 def AddProducto(request):
     categorias = CategoriaProducto.objects.all()
     if request.method == 'POST':
@@ -415,7 +507,7 @@ def AddProducto(request):
     elif request.method == 'GET':
         return render(request, 'admin/productos/addProducto.html', {'categorias': categorias})
 
-# @admin_required
+@admin_required
 def EditProducto(request, id):
     producto = get_object_or_404(Producto, id=id)
     categorias = CategoriaProducto.objects.all()
@@ -502,7 +594,7 @@ def EditProducto(request, id):
         })
 
 # Manejo de Producto / Para no eliminar registros
-# @admin_required
+@admin_required
 def BlockProducto(request, id):
     if request.method == 'GET':
         producto = Producto.objects.get(id=id)
@@ -521,17 +613,17 @@ def BlockProducto(request, id):
             except:
                 return HttpResponse("Error al habilitar el producto: {}".format(producto.nombre), status=404)        
 
-# @admin_required
+@admin_required
 def RenderSupHome(request):
     return render(request, 'supervisor/indexSuper.html')
 
-# @admin_required
+@admin_required
 def RenderSupInventario(request):
     if request.method == 'GET':
         inventario = Inventario.objects.all()
         return render(request, 'admin/inventario/inventario.html', {'inventario': inventario})
 
-# @admin_required
+@admin_required
 def AddInventario(request):
     productos = Producto.objects.all()
     existencia = Inventario.objects.all()
@@ -582,9 +674,11 @@ def AddInventario(request):
             return render(request, 'admin/inventario/addInventario.html', {'productos': productos, 'errores': has_error, 'existencia': existencia})
 
     elif request.method == 'GET':
+        print(productos)
+        print(existencia)
         return render(request, 'admin/inventario/addInventario.html', {'productos': productos, 'existencia': existencia})
 
-# @admin_required
+@admin_required
 def EditInventario(request, id):
     inventario = Inventario.objects.get(id=id)  # Obtener el inventario a editar
     productos = Producto.objects.all()  # Obtener todos los productos disponibles
@@ -645,7 +739,7 @@ def EditInventario(request, id):
             'inventario': inventario
         })
     
-# @admin_required
+@admin_required
 def BlockInventario(request, id):
     if request.method == 'GET':
         inventario = Inventario.objects.get(id=id)
@@ -666,31 +760,29 @@ def BlockInventario(request, id):
     
 # Vendedor
 # @admin_required
-def RenderVenHome(request):
-    return render(request, 'vendedor/indexVendedor.html')
+# def RenderVenHome(request):
+#     return render(request, 'vendedor/indexVendedor.html')
 
-# @admin_required
-def RenderVentas(request):
-    return render(request, 'vendedor/ventas.html')
+# # @admin_required
+# def RenderVentas(request):
+#     return render(request, 'vendedor/ventas.html')
 
+# def inicio(request):
+#     # Obtenemos los productos del carrito (IDs almacenados en la sesión)
+#     carrito = request.session.get("carrito", [])
+#     # Obtenemos todos los productos disponibles
+#     productos = Producto.objects.all()
+#     # Pasamos el número de productos en el carrito al template
+#     return render(request, "inicio.html", {"productos": productos, "carrito": len(carrito)})
 
-
-def inicio(request):
-    # Obtenemos los productos del carrito (IDs almacenados en la sesión)
-    carrito = request.session.get("carrito", [])
-    # Obtenemos todos los productos disponibles
-    productos = Producto.objects.all()
-    # Pasamos el número de productos en el carrito al template
-    return render(request, "inicio.html", {"productos": productos, "carrito": len(carrito)})
-
-def agregarAlCarro(request, id):
-    # Si el carrito no existe en la sesión, se inicializa como lista vacía
-    carrito = request.session.get("carrito", [])
-    # Agregamos el ID del producto al carrito
-    carrito.append(id)
-    # Guardamos el carrito actualizado en la sesión
-    request.session["carrito"] = carrito
-    return inicio(request)  # Volvemos a la página de inicio
+# def agregarAlCarro(request, id):
+#     # Si el carrito no existe en la sesión, se inicializa como lista vacía
+#     carrito = request.session.get("carrito", [])
+#     # Agregamos el ID del producto al carrito
+#     carrito.append(id)
+#     # Guardamos el carrito actualizado en la sesión
+#     request.session["carrito"] = carrito
+#     return inicio(request)  # Volvemos a la página de inicio
 
 def detalleCarrito(request):
     # Obtenemos los IDs de los productos en el carrito
@@ -719,18 +811,21 @@ def detalleCarrito(request):
 #     return render(request, "visualizarPedidos.html",{"pedido":pedido})
 
 # Vista para gestionar pedidos
+@picker_required
 def RenderPedido(request):
     # Obtener todos los pedidos (o filtrar según tus necesidades)
     pedidos = OrdenesCompra.objects.all()
     return render(request, 'picker/gestionarPedidos.html', {'pedidos': pedidos})
 
 # Vista para visualizar un pedido específico
+@picker_required
 def VisualizarPedido(request):
     # Obtener todos los pedidos
     pedidos = OrdenesCompra.objects.all()
     return render(request, 'picker/visualizarPedidos.html', {'pedidos': pedidos})
 
 # Vista para actualizar el estado de un pedido
+@picker_required
 def ActualizarEstado(request):
     if request.method == 'POST':
         # Aquí agregarías la lógica para actualizar el estado de un pedido
@@ -748,139 +843,3 @@ def VisualizarStock(request):
     productos = Producto.objects.all()  # Obtiene todos los productos
     return render(request, "picker/visualizarStock.html", {"productos": productos})
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# Probando
-
-# Función para agregar productos al carrito
-def AddCarro(request, producto_id):
-    producto = get_object_or_404(Producto, id=producto_id)
-    cantidad = int(request.POST.get('cantidad', 1))
-    carro = request.session.get('carro', [])
-
-    # Verificar si el producto ya está en el carrito y aumentar la cantidad
-    for item in carro:
-        if item['id'] == producto.id:
-            item['cantidad'] += cantidad
-            break
-    else:
-        # Si el producto no está en el carrito, añadirlo con la cantidad seleccionada
-        carro.append({
-            'id': producto.id,
-            'nombre': producto.nombre,
-            'cantidad': cantidad,
-            'precio': producto.precio_unitario
-        })
-
-    # Guardar el carrito en la sesión
-    request.session['carro'] = carro
-    messages.success(request, 'Producto agregado al carrito.')
-    return redirect('detalle_carrito')  # Redirige a la vista de detalle del carrito
-
-# Función para eliminar un producto específico del carrito
-def DeleteItemCarro(request, producto_id):
-    carro = request.session.get('carro', [])
-    carro = [item for item in carro if item['id'] != producto_id]
-    request.session['carro'] = carro
-    messages.success(request, 'Producto eliminado del carrito.')
-    return redirect('detalle_carrito')  # Redirige a la vista de detalle del carrito
-
-
-
-# Función para vaciar el carrito y ajustar el stock
-def VaciarCarro(request):
-    carro = request.session.get('carro', [])
-    if carro:
-        for item in carro:
-            producto = get_object_or_404(Producto, id=item['id'])
-            producto.stock -= item['cantidad']
-            producto.save()
-
-        # Vaciar el carrito después de la compra
-        request.session['carro'] = []
-        messages.success(request, 'Compra confirmada. El stock ha sido actualizado.')
-    else:
-        messages.error(request, 'No hay productos en el carrito.')
-
-    return redirect('detalle_carrito')  # Redirige a la vista de detalle del carrito
-
-# Vista para mostrar los detalles del carrito
-def DetalleCarrito(request):
-    carro = request.session.get('carro', [])
-    total = sum(item['precio'] * item['cantidad'] for item in carro)
-    return render(request, 'usuario/carrito/detalle_carrito.html', {'carro': carro, 'total': total})

@@ -24,11 +24,7 @@
         <select name="producto" id="producto" class="form-select">
           <option value="-1">--Seleccione Producto--</option>
           {% for i in productos %}
-          {% for existe in existencia %}
-          {% if i.id != existe.id %}
           <option value="{{i.id}}" {% if inventario and inventario.producto.id == i.id %}selected{% endif %}>{{i.nombre}}</option>
-          {% endif %}
-          {% endfor%}
           {% endfor %}
         </select>
         {% if errores.producto_empty %}

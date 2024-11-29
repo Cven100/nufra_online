@@ -70,7 +70,7 @@ urlpatterns = [
 
         # Picker
     # Ruta para gestionar pedidos
-    path('home/picker/gestionar-pedidos/', vistas.RenderPedido, name='gestionarPedidos'),
+    path('home/picker/gestionar-pedidos/', vistas.RenderPedido, name='pickerHome'),
     
     # Ruta para ver un pedido específico
     path('home/picker/gestionar-pedidos/visualizar-pedidos/', vistas.VisualizarPedido, name='visualizarPedidos'),
@@ -78,8 +78,8 @@ urlpatterns = [
     # Ruta para actualizar el estado de un pedido
     path('home/picker/gestionar-pedidos/actualizar-estado/', vistas.ActualizarEstado, name='actualizarEstado'),
     
-    # Ruta para visualizar stock
-    path('home/picker/visualizar-stock/', vistas.VisualizarStock, name='visualizarStock'),
+    # # Ruta para visualizar stock
+    # path('home/picker/visualizar-stock/', vistas.VisualizarStock, name='visualizarStock'),
 
 
 

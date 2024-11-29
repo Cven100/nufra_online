@@ -81,11 +81,11 @@
                             </a>
                         </li>
                     {% elif request.session.rol_id == '3' %}
-                        <li class="nav-item">
-                            <a href="{% url 'SupHome' %}" class="nav-link">
+                        <!-- <li class="nav-item">
+                            <a href="{% url 'pickerHome' %}" class="nav-link">
                                 <i class="fa-solid fa-house-user"></i>
                             </a>
-                        </li>
+                        </li> -->
                     {% endif %}
                     {% endblock %}
                     {% block navitems %}
