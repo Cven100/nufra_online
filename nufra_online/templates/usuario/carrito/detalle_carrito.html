@@ -26,6 +26,23 @@
 
 {% block content %}
 
+{% if messages %}
+    {% for message in messages %}
+        {% if message.tags == 'info' %}
+            <div class="alert alert-info">
+                {{ message }}
+            </div>
+        {% elif message.tags == 'success' %}
+            <div class="alert alert-success">
+                {{ message }}
+            </div>
+        {% elif message.tags == 'error' %}
+            <div class="alert alert-danger">
+                {{ message }}
+            </div>
+        {% endif %}
+    {% endfor %}
+{% endif %}
 {% if request.session.carro %}
 <table class="table table-striped">
     <thead>

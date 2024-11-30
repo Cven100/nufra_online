@@ -24,7 +24,6 @@
     </li>
 
     <!-- Botón del carrito de compras -->
-    {% if request.session.user_id != 2 %}
     <div class="ms-auto cart-btn">
         <a href="{% url 'cart' %}" class="nav-link text-white" title="Carrito de compras">
             <i class="fas fa-shopping-cart"></i>
@@ -34,10 +33,26 @@
             {% endif %}
         </a>
     </div>
-    {% endif %}
 {% endblock %}
 
 {% block content %}
+{% if messages %}
+    {% for message in messages %}
+        {% if message.tags == 'info' %}
+            <div class="alert alert-info">
+                {{ message }}
+            </div>
+        {% elif message.tags == 'success' %}
+            <div class="alert alert-success">
+                {{ message }}
+            </div>
+        {% elif message.tags == 'error' %}
+            <div class="alert alert-danger">
+                {{ message }}
+            </div>
+        {% endif %}
+    {% endfor %}
+{% endif %}
 <section class="catalog-container py-5 bg-light">
     <h1 class="text-center text-danger fw-bold mb-5">Catálogo</h1>
     <div class="container">
@@ -54,9 +69,7 @@
                                             <div class="card mx-2 shadow-lg" style="min-width: 200px; max-width: 220px; border: 1px solid #ff9999; border-radius: 15px;">
                                                 <div class="card-body text-center">
                                                     {% if producto.imagen.url != none %}
-                                                    <a href="#">
-                                                        <img src="{{ producto.imagen.url }}" alt="Imagen de {{ producto.nombre }}" class="img-fluid" style="height: 12rem; object-fit: cover; border-radius: 10px;">
-                                                    </a>
+                                                    <img src="{{ producto.imagen.url }}" alt="Imagen de {{ producto.nombre }}" class="img-fluid" style="height: 12rem; object-fit: cover; border-radius: 10px;">
                                                     {% else %}
                                                     <p class="text-danger">No hay Imagen Disponible</p>
                                                     {% endif %}
@@ -66,14 +79,17 @@
                                                         {{ producto.nombre }}
                                                     </p>
                                                     <p class="card-text mb-2 text-success">{{ producto.precio_unitario }} CLP</p>
+                                                    <p class="card-text mb-2">Stock: {{ producto.stock_actual }} unidades.</p>
                                                     
                                                     <!-- Formulario para agregar al carrito -->
                                                     <form method="POST" action="{% url 'AddCarro' producto.id %}">
                                                         {% csrf_token %}
                                                         <div class="d-flex justify-content-center align-items-center">
-                                                            <input type="number" name="cantidad" min="1" class="form-control mt-2" style="max-width: 80px;">
-
-                                                            <button type="submit" class="btn btn-warning mt-2 ms-2" style="width: 120px; border-radius: 5px; font-weight: bold;">Añadir al Carrito</button>
+                                                            <!-- STOCK PARA MAX COMPRA -->
+                                                            <input type="number" name="cantidad" value="1" min="1" max="{{ producto.stock_actual }}" class="form-control mt-2" style="max-width: 80px;" required>
+                                                            <button type="submit" class="btn btn-success mt-2 ms-2" style="width: 120px; border-radius: 5px; font-weight: bold;">
+                                                                <i class="fa-solid fa-cart-shopping"></i>
+                                                            </button>
                                                         </div>
                                                     </form>
                                                 </div>

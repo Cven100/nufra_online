@@ -9,7 +9,8 @@
     alt="Logo"
   />
 </div>
-{% endblock %} {% block content %}
+{% endblock %} 
+{% block content %}
 <div
   class="container d-flex align-items-center justify-content-center"
   style="height: 70vh"
@@ -89,23 +90,39 @@
           {% endif %}
         </div>
         <div class="col-6">
-          <label for="fecha" class="form-label">Fecha Ingreso</label>
-          <input 
-            type="date" 
-            id="fecha" 
-            name="fecha" 
-            class="form-control" 
-            value="{% if producto %}{{ producto.fecha_ingreso|date:'Y-m-d' }}{% endif %}"
+          <label for="pedido" class="form-label">Precio Pedido</label>
+          <input
+            type="number"
+            id="pedido"
+            name="pedido"
+            class="form-control"
+            min="0"
+            value="{% if producto %}{{ producto.precio_pedido }}{% endif %}"
           />
-          {% if errores.date_empty %}
-          <span class="text-danger">{{errores.date_empty}}</span>
-          {% elif errores.future_date %}
-          <span class="text-danger">{{errores.future_date}}</span>
-          {% elif errores.invalid_date %}
-          <span class="text-danger">{{errores.invalid_date}}</span>
+          {% if errores.pedido_empty %}
+          <span class="text-danger">{{errores.pedido_empty}}</span>
+          {% elif errores.pedido_char_error %}
+          <span class="text-danger">{{errores.pedido_char_error}}</span>
           {% endif %}
         </div>
       </div>
+      <!-- <div class="col">
+        <label for="fecha" class="form-label">Fecha Ingreso</label>
+        <input 
+          type="date" 
+          id="fecha" 
+          name="fecha" 
+          class="form-control" 
+          value="{% if producto %}{{ producto.fecha_ingreso|date:'Y-m-d' }}{% endif %}"
+        />
+        {% if errores.date_empty %}
+        <span class="text-danger">{{errores.date_empty}}</span>
+        {% elif errores.future_date %}
+        <span class="text-danger">{{errores.future_date}}</span>
+        {% elif errores.invalid_date %}
+        <span class="text-danger">{{errores.invalid_date}}</span>
+        {% endif %}
+      </div> -->
       <div class="col mt-3">
         <label for="imagen" class="form-label">Imagen del Producto</label>
         <input type="file" name="imagen" id="imagen" class="form-control"  accept="image/*">

@@ -11,7 +11,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from app.forms import AddUserForm
 
 #MODEL
-from .models import DetalleVenta, Usuario,Administrador , Roles, Producto, CategoriaProducto, Inventario, Picker, OrdenesCompra, Venta
+from .models import DetallePedido, DetalleVenta, Pedido, Usuario,Administrador , Roles, Producto, CategoriaProducto, Picker, OrdenesCompra, Venta
 
 #DECORADORES DE SESSION
 def admin_required(view_func):
@@ -73,14 +73,15 @@ def RenderLogin(request):
                     request.session['user_id'] = user.id
                     request.session['email'] = user.email
                     request.session['rol_id'] = str(user.rol.id) 
-
                     if user.rol.id == 1:
                         # ESTO QUITARLO SI DA DRAMA ES PARA EL CARRO
                         request.session['rut'] = user.rut  
                         return redirect('home')
                     elif user.rol.id == 2:
+                        request.session['rut'] = user.rut 
                         return redirect('AdminHome')
                     elif user.rol.id == 3:
+                        request.session['rut'] = user.rut 
                         return redirect('pickerHome')
                 else:
                     has_error['cred_error'] = 'Las Credenciales no Coinciden'
@@ -97,6 +98,7 @@ def RenderRegister(request):
     if request.method == "POST":
         # USUARIO
         has_error = {}
+        rut_entregado = request.POST.get('rut')
         nombre = request.POST.get('nombre')
         apellido = request.POST.get('apellido')
         username = request.POST.get('username')
@@ -157,10 +159,17 @@ def RenderRegister(request):
             has_error['password_final'] = 'Las contraseñas no coinciden'     
 
         # VALIDAR EXISTENCIA DEL OBJETO
+        if Usuario.objects.filter(email=username + '@nufra.com').exists():
+            has_error['duplicado'] = 'Ya Existe un Trabajador con este Correo'
+        
+        # VALIDACION RUT
+        if rut_entregado.strip() == "":
+            has_error['rut_empty'] = 'El Campo RUT no Puede Estar Vacio'
 
         if not has_error:
             if rol == '2':
                 user = Administrador(
+                    rut=rut_entregado,
                     nombre=nombre,
                     apellido=apellido,
                     rol=Roles.objects.get(id=rol),
@@ -173,6 +182,7 @@ def RenderRegister(request):
 
             if rol == '3':
                 user = Picker(
+                    rut=rut_entregado,
                     nombre=nombre,
                     apellido=apellido,
                     rol=Roles.objects.get(id=rol),
@@ -191,15 +201,10 @@ def RenderRegister(request):
         return render(request, 'admin/views/register.html', {'roles': roles})
 
 # Usuario General
-
 def agregar_a_carrito(request, producto_id):
     producto = Producto.objects.get(id=producto_id)
     cantidad = int(request.POST.get('cantidad', 1))
     
-    # Aquí agregas la lógica para añadir el producto al carrito
-    # Suponiendo que el carrito se guarda en la sesión o en otro modelo.
-
-    # Por ejemplo, si el carrito es un diccionario en la sesión:
     carrito = request.session.get('carrito', [])
     if producto_id in carrito:
         carrito[producto_id] += cantidad
@@ -208,7 +213,6 @@ def agregar_a_carrito(request, producto_id):
     
     request.session['carrito'] = carrito
 
-    # Redirige de vuelta al catálogo o a donde sea necesario
     return redirect('Catalog')
 
 def register_view(request):
@@ -242,8 +246,6 @@ def RenderUserCatalog(request):
             'carro': carrito,
             'user_id': user_id,
             })
-    
-### Probando ###
 
 # Función para agregar productos al carrito
 def AddCarro(request, producto_id):
@@ -278,22 +280,26 @@ def DeleteItemCarro(request, producto_id):
     messages.success(request, 'Producto eliminado del carrito.')
     return redirect('cart')  # Redirige a la vista de detalle del carrito
 
-# Función para vaciar el carrito y ajustar el stock
+# Función para vaciar el carrito y ajustar el stock (VENDER)
 def VaciarCarro(request):
     carro = request.session.get('carro', [])
     if carro:
-        user = Usuario.objects.get(rut=request.session.get('rut', None))
+        try:
+            user = Usuario.objects.get(rut=request.session.get('rut', None))
+        except Usuario.DoesNotExist:
+            messages.error(request, 'usuario no encontrado')
+            return redirect('cart')
+
         venta = Venta.objects.create(
-            rut_cliente=user,  # Asumimos que el usuario está en la sesión
+            rut_cliente=user,
             fecha=datetime.date.today(),
-            total=0,  # Esto se actualizará más tarde
+            total=0,
         )
 
         total_compra = 0
 
         for item in carro:
             producto = get_object_or_404(Producto, id=item['id'])
-            inventario = Inventario.objects.get(producto=producto)
             subtotal = item['subtotal']
             total_compra += subtotal
             
@@ -305,20 +311,28 @@ def VaciarCarro(request):
                 precio_unitario=item['precio'],
                 subtotal=subtotal
             )
-            inventario.stock_actual -= item['cantidad']
-            inventario.save()
+
+            orden = OrdenesCompra.objects.create(
+                usuario_id= user,
+                producto=producto,
+                cantidad=item['cantidad'],
+                estado='Aprobado'
+            )
+
+            producto.stock_actual -= item['cantidad']
+            producto.save()
 
         venta.total = total_compra
         venta.save()
 
         # Vaciar el carrito después de la compra
         request.session['carro'] = []
-        messages.success(request, 'Compra confirmada. El stock ha sido actualizado.')
+        messages.success(request, 'Compra confirmada con exito.')
     
     else:
         messages.error(request, 'No hay productos en el carrito.')
 
-    return redirect('cart')  # Redirige a la vista de detalle del carrito
+    return redirect('cart')
 
 # Vista para mostrar los detalles del carrito
 def DetalleCarrito(request):
@@ -345,7 +359,24 @@ def RenderTrabajadores(request):
     pick = Picker.objects.all()
     return render(request, 'admin/views/trabajadores.html',{'users': users, 'adm': adm, 'pick': pick})
 
-
+@admin_required 
+def BlockTrabajador(request, id):
+    if request.method == 'GET':
+        user = Usuario.objects.get(id=id)
+        if user.estado == 'Activo':
+            try:
+                user.estado = 'Inactivo'
+                user.save()
+                return redirect('Trabajadores')
+            except:
+                return HttpResponse(f"Error al Deshabilitar al Trabajador: {user.nombre}", status=404)
+        elif user.estado == 'Inactivo':
+            try:
+                user.estado = 'Activo'
+                user.save()
+                return redirect('Trabajadores')
+            except:
+                return HttpResponse("Error al Habilitar al Trabajador: {}".format(user.nombre), status=404)        
 
 # Categorias
 @admin_required
@@ -361,7 +392,10 @@ def RenderCategorias(request):
             has_error['name_max_char'] = 'Se ha Superado el MAXIMO de Caracteres, MAXIMO Permitido: 50'
         else:
             nombre = nombre.title()
-
+        
+        if CategoriaProducto.objects.filter(nombre=nombre).exists():
+                has_error['duplicado'] = 'La categoría ya existe.'
+            
         if not has_error:
             categoria = CategoriaProducto(nombre=nombre)
             categoria.save()
@@ -441,7 +475,7 @@ def AddProducto(request):
         categoria = request.POST.get('categoria')
         descripcion = request.POST.get('descripcion')
         precio = request.POST.get('precio')
-        fecha = request.POST.get('fecha')
+        pedido = request.POST.get('pedido')
         imagen = request.FILES.get('imagen')
 
         # Validacion Nombre
@@ -473,17 +507,26 @@ def AddProducto(request):
                 precio = float(precio)
             except ValueError:
                 has_error['price_char_error'] = 'El PRECIO Debe ser un Número Válido.'
-        
-        # Validacion Fecha
-        if not fecha:
-            has_error['date_empty'] = 'La FECHA NO Puede Esta VACIA'
+
+        # Validacion Precio
+        if pedido.strip() == "":
+            has_error['pedido_empty'] = 'El Campo PRECIO PEDIDO NO Puede Estar Vacio'
         else:
             try:
-                fecha_valida = datetime.datetime.strptime(fecha, "%Y-%m-%d").date()
-                if fecha_valida > datetime.date.today():
-                    has_error['future_date'] = 'La Fecha de Ingreso NO Puede Estar en el FUTURO'
+                pedido = float(pedido)
             except ValueError:
-                has_error['invalid_date'] = 'Fecha Ingresada Invalida'
+                has_error['pedido_char_error'] = 'El PRECIO PEDIDO Debe ser un Número Válido.'
+        
+        # Validacion Fecha
+        # if not fecha:
+        #     has_error['date_empty'] = 'La FECHA NO Puede Esta VACIA'
+        # else:
+        #     try:
+        #         fecha_valida = datetime.datetime.strptime(fecha, "%Y-%m-%d").date()
+        #         if fecha_valida > datetime.date.today():
+        #             has_error['future_date'] = 'La Fecha de Ingreso NO Puede Estar en el FUTURO'
+        #     except ValueError:
+        #         has_error['invalid_date'] = 'Fecha Ingresada Invalida'
 
         # Validar Existencia
         if Producto.objects.filter(nombre=nombre).exists():
@@ -495,7 +538,7 @@ def AddProducto(request):
                 categoria=get_object_or_404(CategoriaProducto, id=categoria),
                 descripcion=descripcion,
                 precio_unitario=precio,
-                fecha_ingreso=fecha,
+                precio_pedido=pedido,
                 imagen=imagen
             )
 
@@ -519,7 +562,7 @@ def EditProducto(request, id):
         categoria = request.POST.get('categoria')
         descripcion = request.POST.get('descripcion')
         precio = request.POST.get('precio')
-        fecha = request.POST.get('fecha')
+        pedido = request.POST.get('pedido')
         imagen = request.FILES.get('imagen')
 
         # Validacion Nombre
@@ -553,15 +596,15 @@ def EditProducto(request, id):
                 has_error['price_char_error'] = 'El PRECIO Debe ser un Número Válido.'
         
         # Validacion Fecha
-        if not fecha:
-            has_error['date_empty'] = 'La FECHA NO Puede Esta VACIA'
-        else:
-            try:
-                fecha_valida = datetime.datetime.strptime(fecha, "%Y-%m-%d").date()
-                if fecha_valida > datetime.date.today():
-                    has_error['future_date'] = 'La Fecha de Ingreso NO Puede Estar en el FUTURO'
-            except ValueError:
-                has_error['invalid_date'] = 'Fecha Ingresada Invalida'
+        # if not fecha:
+        #     has_error['date_empty'] = 'La FECHA NO Puede Esta VACIA'
+        # else:
+        #     try:
+        #         fecha_valida = datetime.datetime.strptime(fecha, "%Y-%m-%d").date()
+        #         if fecha_valida > datetime.date.today():
+        #             has_error['future_date'] = 'La Fecha de Ingreso NO Puede Estar en el FUTURO'
+        #     except ValueError:
+        #         has_error['invalid_date'] = 'Fecha Ingresada Invalida'
 
         # Validar Existencia (solo si el nombre ha cambiado)
         if Producto.objects.filter(nombre=nombre).exclude(id=producto.id).exists():
@@ -573,7 +616,7 @@ def EditProducto(request, id):
             producto.categoria = get_object_or_404(CategoriaProducto, id=categoria)
             producto.descripcion = descripcion
             producto.precio_unitario = precio
-            producto.fecha_ingreso = fecha
+            producto.precio_pedido = pedido
             if imagen:
                 producto.imagen = imagen
         
@@ -620,169 +663,102 @@ def RenderSupHome(request):
 @admin_required
 def RenderSupInventario(request):
     if request.method == 'GET':
-        inventario = Inventario.objects.all()
-        return render(request, 'admin/inventario/inventario.html', {'inventario': inventario})
+        carro = request.session.get('carroPedido', [])
+        productos = Producto.objects.all()
+        return render(request, 'admin/inventario/inventario.html', {'inventario': productos, 'carroPedido': carro})
 
 @admin_required
-def AddInventario(request):
-    productos = Producto.objects.all()
-    existencia = Inventario.objects.all()
-    has_error = {}
+def AddCartPedido(request, id):
     if request.method == 'POST':
-        producto_id = request.POST.get('producto')
-        stock = request.POST.get('stock_actual')
-        descripcion = request.POST.get('descripcion')
-        fecha = request.POST.get('fecha_actualizacion')
+        producto = get_object_or_404(Producto, id=id)
+        cantidad = int(request.POST.get('cantidad', 1))  # Obtiene la cantidad del formulario
+        carro = request.session.get('carroPedido', [])
 
-    # Validaciones
-        if producto_id == '-1':
-            has_error['producto_empty'] = "Debe seleccionar un producto."
-        
-        if not stock:
-            has_error['stock_empty'] = "El stock no puede estar vacío."
-        elif not stock.isdigit() or int(stock) < 0:
-            has_error['stock_invalid'] = "El stock debe ser un número positivo."
-
-        if not descripcion:
-            has_error['descripcion_empty'] = "La descripción no puede estar vacía."
-
-        if not fecha:
-            has_error['fecha_empty'] = "La fecha de actualización es obligatoria."
+        # Verificar si el producto ya está en el carrito y aumentar la cantidad
+        for item in carro:
+            if item['id'] == producto.id:
+                item['cantidad'] += cantidad
+                item['subtotal'] = item['cantidad'] * item['precio']
+                break
         else:
-            try:
-                fecha_valida = datetime.datetime.strptime(fecha, "%Y-%m-%d").date()
-                if fecha_valida > datetime.date.today():
-                    has_error['future_date'] = 'La Fecha de Ingreso NO Puede Estar en el FUTURO'
-            except ValueError:
-                has_error['invalid_date'] = 'Fecha Ingresada Invalida'
+            # Si el producto no está en el carrito, añadirlo con la cantidad seleccionada
+            carro.append({
+                'id': producto.id,
+                'nombre': producto.nombre,
+                'cantidad': cantidad,
+                'precio': producto.precio_pedido,
+                'subtotal': producto.precio_pedido * cantidad
+            })
+
+        # Guardar el carrito en la sesión
+        request.session['carroPedido'] = carro
+        messages.success(request, 'Producto agregado al carrito.')
         
-        if Inventario.objects.filter(producto_id=producto_id).exists():
-                has_error['duplicado'] = "Ya existe un registro en el inventario para este producto."
+        # Redirigir a la página de inventario o la página que desees
+        return redirect('inventario')
+
+def RemoverCartPedido(request, id):
+    carro = request.session.get('carroPedido', [])
+    carro = [item for item in carro if item['id'] != id]
+    request.session['carroPedido'] = carro
+    messages.success(request, 'Producto eliminado del carrito.')
+    return redirect('inventario')  
+
+def CrearPedido(request):
+    if request.method == 'POST':
+        carro = request.session.get('carroPedido', [])
+        if carro:
+            # VALIDACION DE ITEM EN CARRO DESHABILITADO
+            productos_invalidos = []
+            for i in carro:
+                try:
+                    producto = Producto.objects.get(id=i['id'])
+                    if not producto.disponible:
+                        productos_invalidos.append(i)
+                except Producto.DoesNotExist:
+                    messages.error(request, f'Producto no Encontrado: {i['nombre']}')
+                    return redirect('inventario')
             
-        if not has_error:
-            producto = Producto.objects.get(id=producto_id)
-            nuevo_inventario = Inventario(
-                producto=producto,
-                nombre=producto.nombre,
-                stock_actual=int(stock),
-                descripcion=descripcion,
-                fecha_actualizacion=fecha
+            if len(productos_invalidos) > 0:
+                mensaje = ''
+                for invalido in productos_invalidos:
+                    mensaje += invalido['nombre'] + '  '
+                    RemoverCartPedido(request, invalido['id'])
+                messages.error(request, f'Hay Productos no Disponibles en el Carro: {mensaje}, Se eliminaran a continuacion')
+                return redirect('inventario')
+            
+            pedido = Pedido.objects.create(
+                total_pedido = 0
             )
-            nuevo_inventario.save()
-            return redirect('inventario') 
+
+            valor_pedido = 0
+
+            for item in carro:
+                producto = get_object_or_404(Producto, id=item['id'])
+                subtotal = item['subtotal']
+                valor_pedido += subtotal
+                
+                # Registrar el detalle de la venta
+                detalle = DetallePedido.objects.create(
+                    pedido = pedido,
+                    producto = producto,
+                    cantidad = item['cantidad'],
+                    precio_unitario = item['precio'],
+                    subtotal = item['subtotal'] 
+                )
+                producto.stock_actual += item['cantidad']
+                producto.save()
+
+            pedido.total_pedido = valor_pedido
+            pedido.save()
+
+            # Vaciar el carrito después de la compra
+            request.session['carroPedido'] = []
+            messages.success(request, 'El stock ha sido actualizado.')
         else:
-            return render(request, 'admin/inventario/addInventario.html', {'productos': productos, 'errores': has_error, 'existencia': existencia})
+            messages.error(request, 'No hay productos en el carrito.')
 
-    elif request.method == 'GET':
-        print(productos)
-        print(existencia)
-        return render(request, 'admin/inventario/addInventario.html', {'productos': productos, 'existencia': existencia})
-
-@admin_required
-def EditInventario(request, id):
-    inventario = Inventario.objects.get(id=id)  # Obtener el inventario a editar
-    productos = Producto.objects.all()  # Obtener todos los productos disponibles
-    has_error = {}
-
-    if request.method == 'POST':
-        # Obtener los datos del formulario
-        producto_id = request.POST.get('producto')
-        stock = request.POST.get('stock_actual')
-        descripcion = request.POST.get('descripcion')
-        fecha = request.POST.get('fecha_actualizacion')
-
-        # Validaciones
-        if producto_id == '-1':
-            has_error['producto_empty'] = "Debe seleccionar un producto."
-        
-        if not stock:
-            has_error['stock_empty'] = "El stock no puede estar vacío."
-        elif not stock.isdigit() or int(stock) < 0:
-            has_error['stock_invalid'] = "El stock debe ser un número positivo."
-
-        if not descripcion:
-            has_error['descripcion_empty'] = "La descripción no puede estar vacía."
-
-        if not fecha:
-            has_error['fecha_empty'] = "La fecha de actualización es obligatoria."
-        else:
-            try:
-                fecha_valida = datetime.datetime.strptime(fecha, "%Y-%m-%d").date()
-                if fecha_valida > datetime.date.today():
-                    has_error['future_date'] = 'La Fecha de Ingreso NO Puede Estar en el FUTURO'
-            except ValueError:
-                has_error['invalid_date'] = 'Fecha Ingresada Invalida'
-
-        # Si no hay errores, actualizar el inventario
-        if not has_error:
-            producto = get_object_or_404(Producto, id=producto_id)
-            inventario.producto = producto
-            inventario.nombre = producto.nombre
-            inventario.stock_actual = int(stock)
-            inventario.descripcion = descripcion
-            inventario.fecha_actualizacion = fecha
-            inventario.save()
-
-            return redirect('inventario')  # Redirige a la vista de inventarios
-
-        # Si hay errores, renderizar el formulario con los errores
-        return render(request, 'admin/inventario/addInventario.html', {
-            'productos': productos,
-            'inventario': inventario,
-            'errores': has_error
-        })
-
-    elif request.method == 'GET':
-        # Si es una solicitud GET, renderizar el formulario con los datos del inventario
-        return render(request, 'admin/inventario/addInventario.html', {
-            'productos': productos,
-            'inventario': inventario
-        })
-    
-@admin_required
-def BlockInventario(request, id):
-    if request.method == 'GET':
-        inventario = Inventario.objects.get(id=id)
-        if inventario.disponible:
-            try:
-                inventario.disponible = False
-                inventario.save()
-                return redirect('inventario')
-            except:
-                return HttpResponse(f"Error al deshabilitar el producto: {inventario.nombre}", status=404)
-        else:
-            try:
-                inventario.disponible = True
-                inventario.save()
-                return redirect('inventario')
-            except:
-                return HttpResponse("Error al habilitar el producto: {}".format(inventario.nombre), status=404)        
-    
-# Vendedor
-# @admin_required
-# def RenderVenHome(request):
-#     return render(request, 'vendedor/indexVendedor.html')
-
-# # @admin_required
-# def RenderVentas(request):
-#     return render(request, 'vendedor/ventas.html')
-
-# def inicio(request):
-#     # Obtenemos los productos del carrito (IDs almacenados en la sesión)
-#     carrito = request.session.get("carrito", [])
-#     # Obtenemos todos los productos disponibles
-#     productos = Producto.objects.all()
-#     # Pasamos el número de productos en el carrito al template
-#     return render(request, "inicio.html", {"productos": productos, "carrito": len(carrito)})
-
-# def agregarAlCarro(request, id):
-#     # Si el carrito no existe en la sesión, se inicializa como lista vacía
-#     carrito = request.session.get("carrito", [])
-#     # Agregamos el ID del producto al carrito
-#     carrito.append(id)
-#     # Guardamos el carrito actualizado en la sesión
-#     request.session["carrito"] = carrito
-#     return inicio(request)  # Volvemos a la página de inicio
+        return redirect('inventario')
 
 def detalleCarrito(request):
     # Obtenemos los IDs de los productos en el carrito
@@ -792,54 +768,76 @@ def detalleCarrito(request):
     
     return render(request, "usuario/carrito/detalle_carrito.html", {"productos": productos})
 
-
-# gestionar los pedidos VERIFICARRRRRRRRRRRRRRR 
-
-# def RenderPedido(request, id=None):
-#     if id is None:
-#         pedidos = OrdenesCompra.objects.all()
-#         return render (request, "picker/gestionarPedidos.html",{"pedidos:pedidos"})
-
-#     pedido = get_object_or_404(OrdenesCompra, id=id)
-
-#     if request.method=="POST" and "actualizarEstado" in request.POST:
-#         newestado= request.POST.get("estado")
-#         pedido.estado = newestado
-#         pedido.save()
-#         return redirect("visualizarPedidos",id=pedido.id)
-
-#     return render(request, "visualizarPedidos.html",{"pedido":pedido})
-
 # Vista para gestionar pedidos
 @picker_required
-def RenderPedido(request):
+def RenderOrdenes(request):
     # Obtener todos los pedidos (o filtrar según tus necesidades)
-    pedidos = OrdenesCompra.objects.all()
-    return render(request, 'picker/gestionarPedidos.html', {'pedidos': pedidos})
+    ordenes = OrdenesCompra.objects.all()
+    return render(request, 'picker/gestionarPedidos.html', {'ordenes': ordenes})
 
-# Vista para visualizar un pedido específico
-@picker_required
-def VisualizarPedido(request):
-    # Obtener todos los pedidos
-    pedidos = OrdenesCompra.objects.all()
-    return render(request, 'picker/visualizarPedidos.html', {'pedidos': pedidos})
-
-# Vista para actualizar el estado de un pedido
-@picker_required
-def ActualizarEstado(request):
+def CheckEstado(request, id):
     if request.method == 'POST':
-        # Aquí agregarías la lógica para actualizar el estado de un pedido
-        # Ejemplo:
-        # pedido_id = request.POST.get('pedido_id')
-        # estado = request.POST.get('estado')
-        # Pedido.objects.filter(id=pedido_id).update(estado=estado)
-        return HttpResponse("Estado actualizado con éxito")
+        try:
+            orden = OrdenesCompra.objects.get(id=id)
+        except OrdenesCompra.DoesNotExist:
+            messages.error(request, 'Orden no Encontrada')
+            redirect('pickerHome')
+        
+        estado = request.POST.get('estados')
 
-    # Mostrar la página de actualizar estado
-    return render(request, 'picker/actualizarEstado.html')
+        if estado == '1':
+            orden.estado = 'Aprobado'
+        elif estado == '2':
+            orden.estado = 'Pendiente'
+        elif estado == '3':
+            orden.estado = 'En Preparacion'
+        elif estado == '4':
+            orden.estado = 'Listo Para Envio'
+        elif estado == '5':
+            orden.estado = 'Enviado'
+        elif estado == '6':
+            orden.estado = 'Entregado'
+            orden.fecha_entrega = datetime.date.today()
+        elif estado == '7':
+            orden.estado = 'Cancelado'
+            orden.fecha_entrega = datetime.date.today()
+
+        orden.save()
+        
+        return redirect('pickerHome')
 
 # Vista para visualizar el stock de productos
 def VisualizarStock(request):
     productos = Producto.objects.all()  # Obtiene todos los productos
     return render(request, "picker/visualizarStock.html", {"productos": productos})
 
+@admin_required
+def RenderVentas(request):
+    if request.method == 'GET':
+        ventas = Venta.objects.all()
+        return render(request, 'admin/views/ventas.html', {'ventas': ventas})
+
+@admin_required
+def RenderDetalle(request, id):
+    if request.method == 'GET':
+        detalle = DetalleVenta.objects.filter(venta=id)
+        if not detalle:
+            messages.error(request, 'No se encontraron detalles para esta venta.')
+            return redirect('ventas') 
+        return render(request, 'admin/views/detalleVenta.html', {'detalle': detalle})
+    
+@admin_required
+def RenderPedido(request):
+    if request.method == 'GET':
+        pedido = Pedido.objects.all()
+        return render(request, 'admin/views/pedidos.html', {'pedido': pedido})
+
+@admin_required
+def RenderDetallePedido(request, id):
+    if request.method == 'GET':
+        detalle = DetallePedido.objects.filter(pedido=id)
+        if not detalle:
+            messages.error(request, 'No se encontraron detalles para este pedido.')
+            return redirect('pedidos') 
+        return render(request, 'admin/views/detallePedidos.html', {'detalle': detalle})
+        

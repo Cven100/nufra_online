@@ -24,6 +24,7 @@
                             <th>Apellido</th>
                             <th>Correo</th>
                             <th>Estado</th>
+                            <th>Accion</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -49,8 +50,9 @@
                             <td>{{ i.estado }}</td>
                             <td>
                                 <a href="#" class="btn btn-primary"><i class="fa-solid fa-pen-to-square"></i></a>
-                                <a href="#" class="{% if i.disponible %}btn btn-success{% else %}btn btn-danger{% endif %}">
+                                <a href="{% url 'blockTrabajador' i.id %}" class="{% if i.estado == 'Inactivo' %}btn btn-success{% elif i.estado == 'Activo' %}btn btn-danger{% endif %}">
                                 <i class="fa-solid fa-store-slash"></i>
+                                </a>
                             </td>
                         </tr>
                         {% endif %}

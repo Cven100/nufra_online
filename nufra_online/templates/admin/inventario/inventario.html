@@ -11,58 +11,121 @@
 
 {% block content %}
 <div class="container">
-    <div class="row mt-3">
-        <h4 class="h4" style="border-bottom: solid;">Inventario Actual</h4>
-        {% if inventario %}
-                    <div class="row mt-3">
-                        <div class="col text-start">
-                            <a href="{% url 'AdminHome' %}" class="btn btn-primary mx-auto">Volver</a>
-                        </div>
-                        <div class="col text-end">
-                            <a href="{% url 'addInventario' %}" class="btn btn-primary mx-auto">+</a>
-                        </div>
-                    </div>
+    <div class="row">
+        <h4 class="h4 mt-3" style="border-bottom: solid;">Inventario Actual</h4>
+        {% if messages %}
+            {% for message in messages %}
+                {% if message.tags == 'info' %}
+                <div class="alert alert-info">
+                    {{ message }}
+                </div>
+                {% elif message.tags == 'success' %}
+                <div class="alert alert-success">
+                    {{ message }}
+                </div>
+                {% elif message.tags == 'error' %}
+                <div class="alert alert-danger">
+                    {{ message }}
+                </div>
+                {% endif %}
+            {% endfor %}
         {% endif %}
-        <div class="table table-responsive mt-3">   
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Codigo</th>
-                        <th>Producto</th>
-                        <th>Stock</th>
-                        <th>Estado</th>
-                        <th>Precio Unitario</th>
-                        <th>Accion</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% if not inventario %}
-                    <tr id="emptyRow">
-                        <td colspan="6" class="text-center">
-                          <a href="{% url 'addInventario' %}" class="btn btn-primary">+</a>
-                        </td>
-                    </tr>
-                    {% else %}
-                    {% for i in inventario %}
-                    <tr>
-                        <td>{{i.producto.id}}</td>
-                        <td>{{i.nombre}}</td>
-                        <td>{{i.stock_actual}}</td>
-                        <td>{% if i.disponible %}Disponible{% else %}No Disponible{% endif %}</td>
-                        <td>{{i.producto.precio_unitario}}</td>
-                        <td>
-                            <a href="{% url 'editInventario' i.id %}" class="btn btn-primary">
-                                <i class="fa-solid fa-pen-to-square"></i>
-                            </a>
-                            <a href="{% url 'blockInventario' i.id %}" class="{% if i.disponible %}btn btn-danger{% else %}btn btn-success{% endif %}">
-                                <i class="fa-solid fa-store-slash"></i>
-                            </a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                    {% endif %}
-                </tbody>
-            </table>
+        <div class="col-6 mt-3">
+            {% if inventario %}
+                        <div class="row mt-3">
+                            <div class="col text-start">
+                                <a href="{% url 'AdminHome' %}" class="btn btn-primary mx-auto">Volver</a>
+                            </div>
+                        </div>
+            {% endif %}
+            <div class="table table-responsive mt-3">   
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Codigo</th>
+                            <th>Producto</th>
+                            <th>Stock</th>
+                            <th>Precio Venta</th>
+                            <th>Precio Compra</th>
+                            <th>Cantidad Pedido</th>
+                            <th>Accion</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if not inventario %}
+                        <tr id="emptyRow">
+                            <td colspan="7" class="text-center">
+                              <p>No Hay Productos Registrados</p>
+                            </td>
+                        </tr>
+                        {% else %}
+                            {% for i in inventario %}
+                                {% if i.disponible %}
+                                <tr>
+                                    <form method="POST" action="{% url 'pedidoAdd' i.id %}">
+                                        {% csrf_token %}
+                                        <td>{{i.id}}</td>
+                                        <td>{{i.nombre}}</td>
+                                        <td>{{i.stock_actual}}</td>
+                                        <td>{{i.precio_unitario}}</td>
+                                        <td>{{i.precio_pedido}}</td>
+                                        <td>
+                                            <input type="number" name="cantidad" min="1" value="1" class="form-control">
+                                        </td>
+                                        <td>
+                                            <button type="submit" class="btn btn-success">
+                                                <i class="fa-solid fa-shopping-cart"></i>
+                                            </button>
+                                        </td>
+                                    </form>
+                                </tr>
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="col-6 mt-5 py-1">
+            <div class="card shadow-sm my-4">
+                <div class="card-header">
+                    <h5>Carro de Pedidos</h5>
+                </div>
+                <div class="card-body">
+                    <form action="{% url 'crearPedido' %}" method="POST">
+                        {% csrf_token %}
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <th>Codigo</th>
+                                    <th>Producto</th>
+                                    <th>Cantidad</th>
+                                    <th>Precio Compra</th>
+                                    <th>Accion</th>
+                                </thead>
+                                <tbody>
+                                    {% if carroPedido %}
+                                        {% for item in carroPedido %}
+                                        <tr>
+                                            <td>{{ item.id }}</td>
+                                            <td>{{ item.nombre }}</td>
+                                            <td>{{ item.cantidad }}</td>
+                                            <td>{{ item.precio }}</td>
+                                            <td>
+                                                <a href="{% url 'pedidoDel' item.id %}" class="btn btn-danger"><i class="fa-solid fa-trash"></i></a>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <button type="submit" class="btn btn-success">Crear Pedido</button>
+                        <!-- <button type="submit" class="btn btn-danger">Limpiar Carro</button> -->
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
+</div>  
 {% endblock %}

@@ -45,6 +45,8 @@
                         <input type="text" class="form-control" id="nombre" name="nombre" maxlength="50">
                         {% if errores.name_empty %}
                         <span class="text-danger">{{ errores.name_empty }}</span>
+                        {% elif errores.duplicado %}
+                        <span class="text-danger">{{ errores.duplicado }}</span>
                         {% elif errores.name_max_char %}
                         <span class="text-danger">{{ errores.name_max_char }}</span>
                         {% endif %}

@@ -1,0 +1,49 @@
+
+{% extends 'shared/baseIndex.html' %}
+{% load static %}
+
+{% block title %}Detalle{% endblock %}
+
+{% block brand %}
+<a href="{% url 'AdminHome' %}" class="navbar-brand">
+    <img class="img-fluid d-block mx-auto" style="max-height: 5rem;" src="{% static '/images/Logo.png' %}" alt="Logo">
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <a href="{% url 'pedidos' %}" class="btn btn-primary">Volver</a>
+    <div class="row">
+        <div class="col">
+            <table class="table table-responsive">
+                <thead>
+                    <tr>
+                        <th>Pedido</th>
+                        <th>Producto</th>
+                        <th>Cantidad</th>
+                        <th>Precio Unitario</th>
+                        <th>Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if detalle %}
+                    {% for i in detalle %}
+                    <tr>
+                        <td>{{ i.pedido.nro_pedido }}</td>
+                        <td>{{ i.producto.nombre }}</td>
+                        <td>{{ i.cantidad }}</td>
+                        <td>{{ i.producto.precio_unitario }}</td>
+                        <td>{{ i.subtotal }}</td>
+                    </tr>
+                    {% endfor %}
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center">Sin detalle</td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

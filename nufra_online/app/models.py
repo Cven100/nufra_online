@@ -8,7 +8,7 @@ class Roles(models.Model):
 class Usuario(models.Model):
     rut = models.CharField(max_length=14, default="")
     nombre = models.CharField(max_length=150, default="")
-    email = models.CharField(max_length=255, default="")
+    email = models.CharField(max_length=255, unique=True)
     telefono = models.IntegerField(default=0)
     direccion = models.CharField(max_length=255, default="")
     password = models.CharField(max_length=128)
@@ -38,26 +38,61 @@ class Producto(models.Model):
     nombre = models.CharField(max_length=150)
     categoria = models.ForeignKey(CategoriaProducto, on_delete=models.DO_NOTHING)
     descripcion = models.TextField()
-    fecha_ingreso = models.DateField()
-    precio_unitario = models.FloatField()
+    fecha_ingreso = models.DateField(auto_now_add=True)
+    precio_unitario = models.FloatField(default=0)
+    precio_pedido = models.FloatField(default=0)
     disponible = models.BooleanField(default=True)
+    stock_actual = models.IntegerField(default=0)
     imagen = models.ImageField(upload_to='productos/', blank=True, null=True)  # <-- Añadir este campo
 
-class Inventario(models.Model):
+class Pedido(models.Model):
+    nro_pedido = models.AutoField(unique=True, primary_key=True)
+    fecha = models.DateField(auto_now_add=True)
+    total_pedido = models.FloatField()
+
+class DetallePedido(models.Model):
+    pedido = models.ForeignKey(Pedido, on_delete=models.CASCADE)
     producto = models.ForeignKey(Producto, on_delete=models.DO_NOTHING)
-    nombre = models.CharField(max_length=150)
-    stock_actual = models.IntegerField()
-    descripcion = models.TextField()
-    fecha_actualizacion = models.DateField()
-    disponible = models.BooleanField(default=True)
+    cantidad = models.IntegerField()
+    precio_unitario = models.FloatField()
+    subtotal = models.FloatField()
+
+# class Inventario(models.Model):
+#     producto = models.ForeignKey(Producto, on_delete=models.DO_NOTHING)
+#     nombre = models.CharField(max_length=150)
+#     stock_actual = models.IntegerField()
+#     descripcion = models.TextField()
+#     fecha_actualizacion = models.DateField()
+#     disponible = models.BooleanField(default=True)
 
 class OrdenesCompra(models.Model):
     usuario_id = models.ForeignKey(Usuario, on_delete=models.DO_NOTHING)
     producto = models.ForeignKey(Producto, on_delete=models.DO_NOTHING)
+    cantidad = models.IntegerField(default=1)
     estado = models.CharField(max_length=50, default="")
-    fecha_creacion = models.TimeField(auto_now_add=True)
-    fecha_entrega = models.TimeField(auto_now_add=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_entrega = models.DateTimeField(blank=True, null=True)
 
+class Venta(models.Model):
+    nro_boleta = models.IntegerField(default=0)
+    rut_cliente = models.ForeignKey(Usuario, on_delete=models.DO_NOTHING)
+    fecha = models.DateField()
+    total = models.FloatField()
+
+    def save(self, *args, **kwargs):
+        #Sobreescribir el Metodo Save para que el nro_boleta sea auto-incrementable
+        if not self.nro_boleta:
+            # Obtener el último nro_boleta generado
+            max_nro_boleta = Venta.objects.aggregate(max_nro=models.Max('nro_boleta'))['max_nro']
+            self.nro_boleta = (max_nro_boleta or 0) + 1  # Incrementar a partir del último nro_boleta
+        super().save(*args, **kwargs)
+    
+class DetalleVenta(models.Model):
+    venta = models.ForeignKey(Venta, on_delete=models.DO_NOTHING)
+    producto = models.ForeignKey(Producto, on_delete=models.DO_NOTHING)
+    cantidad = models.IntegerField()
+    precio_unitario = models.FloatField()
+    subtotal = models.FloatField()
 
 # EN PROCESO
 # class OrdenesCompra(models.Model):
@@ -88,24 +123,3 @@ class OrdenesCompra(models.Model):
 #     producto = models.ForeignKey(Producto, on_delete=models.DO_NOTHING)
 #     cantidad = models.IntegerField(default=1)  # <-- Añadir este campo
 #     total = models.FloatField()
-
-class Venta(models.Model):
-    nro_boleta = models.IntegerField(default=0)
-    rut_cliente = models.ForeignKey(Usuario, on_delete=models.DO_NOTHING)
-    fecha = models.DateField()
-    total = models.FloatField()
-
-    def save(self, *args, **kwargs):
-        #Sobreescribir el Metodo Save para que el nro_boleta sea auto-incrementable
-        if not self.nro_boleta:
-            # Obtener el último nro_boleta generado
-            max_nro_boleta = Venta.objects.aggregate(max_nro=models.Max('nro_boleta'))['max_nro']
-            self.nro_boleta = (max_nro_boleta or 0) + 1  # Incrementar a partir del último nro_boleta
-        super().save(*args, **kwargs)
-    
-class DetalleVenta(models.Model):
-    venta = models.ForeignKey(Venta, on_delete=models.DO_NOTHING)
-    producto = models.ForeignKey(Producto, on_delete=models.DO_NOTHING)
-    cantidad = models.IntegerField()
-    precio_unitario = models.FloatField()
-    subtotal = models.FloatField()

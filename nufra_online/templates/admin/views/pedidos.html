@@ -1,0 +1,50 @@
+{% extends 'shared/baseIndex.html' %}
+{% load static %}
+
+{% block title %}Pedidos{% endblock %}
+
+{% block brand %}
+<a href="{% url 'AdminHome' %}" class="navbar-brand">
+    <img class="img-fluid d-block mx-auto" style="max-height: 5rem;" src="{% static '/images/Logo.png' %}" alt="Logo">
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <a href="{% url 'AdminHome' %}" class="btn btn-primary">Volver</a>
+    <div class="row">
+        <div class="col">
+            <table class="table table-responsive">
+                <thead>
+                    <tr>
+                        <th>Nro Pedido</th>
+                        <th>Fecha</th>
+                        <th>Total</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if pedido %}
+                    {% for i in pedido %}
+                    <tr>
+                        <td>{{ i.nro_pedido }}</td>
+                        <td>{{ i.fecha }}</td>
+                        <td>{{ i.total_pedido }}</td>
+                        <td>
+                            <a href="{% url 'detallePedido' i.nro_pedido %}" class="btn btn-primary">
+                                <i class="fa-solid fa-circle-info"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% else %}
+                    <tr>
+                        <td colspan="4" class="text-center">No hay pedidos</td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

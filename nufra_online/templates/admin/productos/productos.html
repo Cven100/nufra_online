@@ -31,6 +31,8 @@
                         <th>Categoría</th>
                         <th>Descripción</th>
                         <th>Precio Unitario</th>
+                        <th>Precio Compra</th>
+                        <th>Stock</th>
                         <th>Fecha Ingreso</th>
                         <th>Disponibilidad</th>
                         <th>Acciones</th>
@@ -51,6 +53,8 @@
                             <td>{{ i.categoria.nombre }}</td>
                             <td>{{ i.descripcion }}</td>
                             <td>{{ i.precio_unitario }}</td>
+                            <td>{{ i.precio_pedido }}</td>
+                            <td>{{ i.stock_actual }}</td>
                             <td>{{ i.fecha_ingreso }}</td>
                             <td>{% if i.disponible %}Disponible{% else %}No Disponible{% endif %}</td>
                             <td>

@@ -15,6 +15,15 @@
         <h1 class="card-title text-center">Registro</h1>
         <form method="POST">
             {% csrf_token %}
+            <div class="col">
+                <label for="rut" class="form-label">Rut</label>
+                <input type="text" id="rut" name="rut" class="form-control" placeholder="12345678-k" maxlength="14">
+                {% if errores.rut_empty %}
+                <span class="text-danger">{{errores.rut_empty}}</span>
+                {% elif errores.invalid %}
+                <span class="text-danger">{{errores.invalid}}</span>
+                {% endif %}
+            </div>
             <div class="row">
                 <div class="col-6 mt-3">
                     <label for="nombre" class="form-label">Nombre</label>
@@ -52,6 +61,8 @@
                 </div>
                 {% if errores.username_empty %}
                 <span class="text-danger">{{errores.username_empty}}</span>
+                {% elif errores.duplicado %}
+                <span class="text-danger">{{errores.duplicado}}</span>
                 {% elif errores.username_char_error %}
                 <span class="text-danger">{{errores.username_char_error}}</span>
                 {% endif %}

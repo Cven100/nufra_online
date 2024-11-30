@@ -9,35 +9,76 @@
 </a>
 {% endblock %}
 
+{% if messages %}
+    {% for message in messages %}
+        {% if message.tags == 'info' %}
+            <div class="alert alert-info">
+                {{ message }}
+            </div>
+        {% elif message.tags == 'success' %}
+            <div class="alert alert-success">
+                {{ message }}
+            </div>
+        {% elif message.tags == 'error' %}
+            <div class="alert alert-danger">
+                {{ message }}
+            </div>
+        {% endif %}
+    {% endfor %}
+{% endif %}
 {% block content %}
 <div class="container mt-4">
     <div class="row">
         <div class="col-12">
             <h4 class="h4 border-bottom pb-2">Lista de Ordenes</h4>
-            <div class="text-end">
+            <div class="text-center">
             <div class="table-responsive">
                 <table class="table table-striped">
                     <thead class="table-light">
                         <tr>
                             <th>ID</th>
-                            <th>Estado</th>
-                            <th>Fecha_Creacion</th>
+                            <th>Rut Cliente</th>
+                            <th>Direccion</th>
+                            <th>Fecha Creacion</th>
+                            <th>Fecha Entrega/Cancelacion</th>
                             <th>Producto</th>
                             <th>Cantidad</th>
+                            <th>Estado</th>
                             <th>Accion</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for i in ordenes %}
                         <tr>
-                            <td>{{ i.id }}</td>
-                            <td>{{ i.estado }}</td>
-                            <td>{{ i.fecha_creacion}}</td>
-                            <td>{{ i.cantidad}}</td>
-                            <td>{{ i.producto }}</td>
-                            <td>
-                                <a href="#" class="btn btn-primary">Actualizar Estado</a>
-                            </td>
+                            <form action="{% url 'checkEstado' i.id %}" method="POST">
+                                {% csrf_token %}
+                                <td>{{ i.id }}</td>
+                                <td>{{ i.usuario_id.rut }}</td>
+                                <td>{{ i.usuario_id.direccion }}</td>
+                                <td>{{ i.fecha_creacion}}</td>
+                                <td>{{ i.fecha_entrega}}</td>
+                                <td>{{ i.producto.nombre }}</td>
+                                <td>{{ i.cantidad }}</td>
+                                <td>
+                                    <select name="estados" id="estados" class="form-select" {% if i.estado == 'Cancelado' or i.estado == 'Entregado' %}disabled{% endif %}>
+                                        <option value="1" {% if i.estado == 'Aprobado' %}selected{% endif %}>Aprobado</option>
+                                        <option value="2" {% if i.estado == 'Pendiente' %}selected{% endif %}>Pendiente</option>
+                                        <option value="3" {% if i.estado == 'En Preparacion' %}selected{% endif %}>En Preparacion</option>
+                                        <option value="4" {% if i.estado == 'Listo Para Envio' %}selected{% endif %}>Listo Para Envio</option>
+                                        <option value="5" {% if i.estado == 'Enviado' %}selected{% endif %}>Enviado</option>
+                                        <option value="6" {% if i.estado == 'Entregado' %}selected{% endif %}>Entregado</option>
+                                        <option value="7" {% if i.estado == 'Cancelado' %}selected{% endif %}>Cancelado</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    {% if i.estado != 'Cancelado' and i.estado != 'Entregado' %}
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="fa-solid fa-check"></i>
+                                    </button>
+                                    {% else %}
+                                    {% endif %}
+                                </td>
+                            </form>
                         </tr>
                         {% endfor %}
                     </tbody>

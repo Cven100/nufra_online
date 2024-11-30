@@ -47,6 +47,8 @@ urlpatterns = [
     # Admin
     path('home/admin/', vistas.RenderAdminHome, name='AdminHome'),
     path('home/admin/trabajadores/', vistas.RenderTrabajadores, name='Trabajadores'),
+    path('home/admin/trabajadores/block/<int:id>/', vistas.BlockTrabajador, name='blockTrabajador'),
+    
     
         # Producto
     path('home/admin/config/productos/', vistas.RenderProducto, name='productos'),
@@ -64,25 +66,21 @@ urlpatterns = [
         
         # Inventario
     path('home/admin/config/inventario/', vistas.RenderSupInventario, name='inventario'),
-    path('home/admin/config/inventario/add', vistas.AddInventario, name='addInventario'),
-    path('home/admin/config/inventario/edit/<int:id>/', vistas.EditInventario, name='editInventario'),
-    path('home/admin/config/inventario/block/<int:id>/', vistas.BlockInventario, name='blockInventario'),
+    path('home/admin/config/inventario/cart-add/<int:id>/', vistas.AddCartPedido, name='pedidoAdd'),
+    path('home/admin/config/inventario/cart-buy/', vistas.CrearPedido, name='crearPedido'),
+    path('home/admin/config/inventario/cart-del/<int:id>/', vistas.RemoverCartPedido, name='pedidoDel'),
+    
+        # VENTAS
+    path('home/admin/config/ventas/', vistas.RenderVentas, name='ventas'),
+    path('home/admin/config/ventas/detalle/<int:id>/', vistas.RenderDetalle, name='detalleVenta'),
 
+        # PEDIDOS
+    path('home/admin/config/pedidos/', vistas.RenderPedido, name='pedidos'),
+    path('home/admin/config/pedidos/detalle/<int:id>/', vistas.RenderDetallePedido, name='detallePedido'),
+    
         # Picker
     # Ruta para gestionar pedidos
-    path('home/picker/gestionar-pedidos/', vistas.RenderPedido, name='pickerHome'),
-    
-    # Ruta para ver un pedido específico
-    path('home/picker/gestionar-pedidos/visualizar-pedidos/', vistas.VisualizarPedido, name='visualizarPedidos'),
-    
-    # Ruta para actualizar el estado de un pedido
-    path('home/picker/gestionar-pedidos/actualizar-estado/', vistas.ActualizarEstado, name='actualizarEstado'),
-    
-    # # Ruta para visualizar stock
-    # path('home/picker/visualizar-stock/', vistas.VisualizarStock, name='visualizarStock'),
-
-
-
-
+    path('home/picker/gestionar-pedidos/', vistas.RenderOrdenes, name='pickerHome'),
+    path('home/picker/gestionar-pedidos/estado/<int:id>', vistas.CheckEstado, name='checkEstado'),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
