@@ -13,7 +13,17 @@
 <div class="container mt-4">
     <a href="{% url 'AdminHome' %}" class="btn btn-primary">Volver</a>
     <div class="row">
-        <div class="col">
+        <div class="col mt-3">
+            <label for="buscador" class="form-label">Buscador</label>
+            <form method="POST">
+                {% csrf_token %}
+                <div class="input-group mb-3">
+                    <input type="number" name="buscador" id="buscador" class="form-control" placeholder="nro pedido" aria-label="buscador con boton" aria-describedby="button-addon1">
+                    <input type="number" placeholder="Total" name="buscador_total" id="buscador_total" class="form-control form-control-sm" aria-label="buscador_total" style="max-width: 150px;">
+                    <input type="date" name="buscador_fecha" id="buscador_fecha" class="form-control form-control-sm" aria-label="Fecha" style="max-width: 150px;">
+                    <button class="btn btn-outline-success" type="submit" id="button-addon1">Buscar</button>
+                </div>
+            </form>
             <table class="table table-responsive">
                 <thead>
                     <tr>

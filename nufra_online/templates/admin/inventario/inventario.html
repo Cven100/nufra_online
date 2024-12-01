@@ -31,13 +31,27 @@
             {% endfor %}
         {% endif %}
         <div class="col-6 mt-3">
-            {% if inventario %}
-                        <div class="row mt-3">
-                            <div class="col text-start">
-                                <a href="{% url 'AdminHome' %}" class="btn btn-primary mx-auto">Volver</a>
-                            </div>
-                        </div>
-            {% endif %}
+            <div class="row mt-3">
+                <div class="col text-start">
+                    <a href="{% url 'AdminHome' %}" class="btn btn-primary mx-auto">Volver</a>
+                </div>
+            </div>
+            <label for="buscador" class="form-label mt-3">Buscador</label>
+            <form method="POST">
+                {% csrf_token %}
+                <div class="input-group mb-3">
+                    <input type="number" name="buscador" id="buscador" class="form-control" placeholder="codigo" aria-label="buscador con boton" aria-describedby="button-addon1">
+                    <input type="text" placeholder="nombre producto" name="buscador_nombre" id="buscador_nombre" class="form-control form-control-sm" aria-label="buscador_nombre" style="max-width: 150px;">
+                    <input type="number" placeholder="stock" name="buscador_stock" id="buscador_stock" class="form-control form-control-sm" aria-label="buscador_stock" style="max-width: 150px;">
+                    <select name="buscador_stock_opcion" id="buscador_stock_opcion" class="form-control form-control-sm" style="max-width: 120px;">
+                        <option value="equal">Igual a</option>
+                        <option value="lt">Menor que</option>
+                        <option value="gt">Mayor que</option>
+                        <option value="all">Cualquier</option>
+                    </select>
+                    <button class="btn btn-outline-success" type="submit" id="button-addon1">Buscar</button>
+                </div>
+            </form>
             <div class="table table-responsive mt-3">   
                 <table class="table">
                     <thead>

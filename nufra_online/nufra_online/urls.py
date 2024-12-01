@@ -46,8 +46,10 @@ urlpatterns = [
 
     # Admin
     path('home/admin/', vistas.RenderAdminHome, name='AdminHome'),
+        #TRABAJADORES
     path('home/admin/trabajadores/', vistas.RenderTrabajadores, name='Trabajadores'),
     path('home/admin/trabajadores/block/<int:id>/', vistas.BlockTrabajador, name='blockTrabajador'),
+    path('home/admin/trabajadores/edit/<int:id>/', vistas.EditTrabajadores, name='editTrabajadores'),
     
     
         # Producto
@@ -60,6 +62,7 @@ urlpatterns = [
         # Categorias
     path('home/admin/config/productos/categorias/', vistas.RenderCategorias, name='categorias'),
     path('home/admin/config/productos/categorias/edit-categoria/<int:id>/', vistas.EditCategoria, name='editCategoria'),
+    path('home/admin/config/productos/categorias/buscar/', vistas.BuscadorCategoria, name='buscarCategoria'),
     
         # Block/Unblock categoria
     path('home/admin/config/productos/categorias/block-categoria/<int:id>/', vistas.BlockCategoria, name='blockCategoria'),

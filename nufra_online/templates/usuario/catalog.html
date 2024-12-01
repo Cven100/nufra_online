@@ -56,8 +56,25 @@
 <section class="catalog-container py-5 bg-light">
     <h1 class="text-center text-danger fw-bold mb-5">Catálogo</h1>
     <div class="container">
+        <label for="buscador" class="form-label mt-3">Buscador</label>
+        <form method="POST">
+            {% csrf_token %}
+            <div class="input-group mb-3">
+                <input type="text" name="buscador_nombre" id="buscador_nombre" class="form-control" placeholder="nombre producto" aria-label="buscador nombre" aria-describedby="button-addon1">
+                <select name="buscador_categorias" id="buscador_categorias" class="form-select form-control-sm" style="max-width: 145px;">
+                    <option value="-1">Todos los Roles</option>
+                    {% if categorias_generales %}
+                        {% for i in categorias_generales %}
+                            <option value="{{ i.id }}">{{ i.nombre }}</option>
+                        {% endfor %}
+                    {% endif %}
+                </select>
+                <button class="btn btn-outline-success" type="submit" id="button-addon1">Buscar</button>
+            </div>
+        </form>
         {% if categorias %}
             {% for categoria in categorias %}
+                {% if categoria.disponible %}
                 <div class="row mb-4">
                     <h2 class="text-dark fw-bold" style="border-bottom: solid 2px #ff9999; padding-bottom: 10px;">{{ categoria.nombre }}</h2>
                     {% if productos %}
@@ -99,13 +116,14 @@
                                 {% endfor %}
                             </div>
                         </div>
-                    {% else %}
-                        <h2 class="text-danger">No Hay Productos Disponibles</h2>
                     {% endif %}
                 </div>
+                {% else %}
+                <h3>No hay categorias disponibles</h3>
+                {% endif %}
             {% endfor %}
         {% else %}
-            <h2 class="text-danger">No Hay Categorías Disponibles</h2>
+        <h3 class="text-danger">No se han ingresado categorias</h3>
         {% endif %}
     </div>
 </section>

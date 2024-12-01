@@ -12,6 +12,30 @@
 {% block content %}
 <div class="container mt-4">
     <div class="row">
+        <div class="col">
+            <a href="{% url 'AdminHome' %}" class="btn btn-primary">Volver</a>
+        </div>
+        <label for="buscador" class="form-label mt-3">Buscador</label>
+            <form method="POST">
+                {% csrf_token %}
+                <div class="input-group mb-3">
+                    <input type="text" name="buscador_nombre" id="buscador_nombre" class="form-control" placeholder="nombre trabajador" aria-label="buscador nombre" aria-describedby="button-addon1">
+                    <select name="buscador_rol" id="buscador_rol" class="form-select form-control-sm" style="max-width: 145px;">
+                        <option value="-1">Todos los Roles</option>
+                        {% if roles %}
+                            {% for i in roles %}
+                                <option value="{{ i.id }}">{{ i.nombre }}</option>
+                            {% endfor %}
+                        {% endif %}
+                    </select>
+                    <select name="buscador_disponible" id="buscador_disponible" class="form-select form-control-sm" style="max-width: 145px;">
+                        <option value="3">Cualquier</option>
+                        <option value="1">Activo</option>
+                        <option value="2">Inactivo</option>   
+                    </select>
+                    <button class="btn btn-outline-success" type="submit" id="button-addon1">Buscar</button>
+                </div>
+            </form>
         <div class="col-12">
             <h4 class="h4 border-bottom pb-2">Lista de Trabajadores</h4>
             <div class="text-end">
@@ -28,6 +52,7 @@
                         </tr>
                     </thead>
                     <tbody>
+                        {% if users %}
                         {% for i in users %}
                         {% if i.rol.id != 1 %}
                         <tr>
@@ -49,7 +74,7 @@
                             <td>{{ i.email }}</td>
                             <td>{{ i.estado }}</td>
                             <td>
-                                <a href="#" class="btn btn-primary"><i class="fa-solid fa-pen-to-square"></i></a>
+                                <a href="{% url 'editTrabajadores' i.id %}" class="btn btn-primary"><i class="fa-solid fa-pen-to-square"></i></a>
                                 <a href="{% url 'blockTrabajador' i.id %}" class="{% if i.estado == 'Inactivo' %}btn btn-success{% elif i.estado == 'Activo' %}btn btn-danger{% endif %}">
                                 <i class="fa-solid fa-store-slash"></i>
                                 </a>
@@ -57,6 +82,11 @@
                         </tr>
                         {% endif %}
                         {% endfor %}
+                        {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center">No hay trabajadores registrados</td>
+                        </tr>
+                        {% endif %}
                     </tbody>
                 </table>
             </div>

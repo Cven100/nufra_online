@@ -23,6 +23,28 @@
                     <a href="{% url 'addProducto' %}" class="btn btn-primary">Agregar Producto</a>
                 </div>
             </div>
+            <label for="buscador" class="form-label mt-3">Buscador</label>
+            <form method="POST">
+                {% csrf_token %}
+                <div class="input-group mb-3">
+                    <input type="text" name="buscador_nombre" id="buscador_nombre" class="form-control" placeholder="nombre producto" aria-label="buscador nombre" aria-describedby="button-addon1">
+                    <input type="date" name="buscador_fecha" id="buscador_fecha" class="form-control form-control-sm" aria-label="buscador fecha" style="max-width: 150px;">
+                    <select name="buscador_categoria" id="buscador_categoria" class="form-select form-control-sm" style="max-width: 145px;">
+                        <option value="-1">Todas las Categorias</option>
+                        {% if categorias %}
+                            {% for i in categorias %}
+                                <option value="{{ i.id }}">{{ i.nombre }}</option>
+                            {% endfor %}
+                        {% endif %}
+                    </select>
+                    <select name="buscador_disponible" id="buscador_disponible" class="form-select form-control-sm" style="max-width: 145px;">
+                        <option value="3">Cualquier</option>
+                        <option value="1">Disponible</option>
+                        <option value="2">No Disponible</option>   
+                    </select>
+                    <button class="btn btn-outline-success" type="submit" id="button-addon1">Buscar</button>
+                </div>
+            </form>
             <table class="table table-hover">
                 <thead>
                     <tr>
@@ -30,7 +52,7 @@
                         <th>Nombre</th>
                         <th>Categoría</th>
                         <th>Descripción</th>
-                        <th>Precio Unitario</th>
+                        <th>Precio Venta</th>
                         <th>Precio Compra</th>
                         <th>Stock</th>
                         <th>Fecha Ingreso</th>
@@ -60,7 +82,7 @@
                             <td>
                                 <a href="{% url 'editProducto' i.id %}" class="btn btn-primary"><i class="fa-solid fa-pen-to-square"></i></a>
                                 <a href="{% url 'blockProducto' i.id %}" class="{% if i.disponible %}btn btn-danger{% else %}btn btn-success{% endif %}">
-                                    <i class="fa-solid fa-store-slash"></i>
+                                    <i class="fa-solid fa-ban"></i>
                                 </a>
                             </td> 
                         </tr>

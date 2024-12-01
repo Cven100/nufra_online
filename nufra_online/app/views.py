@@ -233,18 +233,40 @@ def RenderUserHome(request):
     return render(request, 'usuario/indexUser.html')
 
 def RenderUserCatalog(request):
-    if request.method == 'GET':
-        carrito = request.session.get("carro", [])
-        user_id = request.session.get('user_id', None)
-        # Filtros para visualizar solo las categorias con productos 
-        categorias_con_productos = CategoriaProducto.objects.filter(producto__isnull=False).distinct()
-        productos = Producto.objects.filter(categoria__in=categorias_con_productos)
+    carrito = request.session.get("carro", [])
+    user_id = request.session.get('user_id', None)
+    categorias_generales = CategoriaProducto.objects.filter(disponible=True)
+    categorias_con_productos = CategoriaProducto.objects.filter(producto__isnull=False).distinct()
+    productos = Producto.objects.filter(categoria__in=categorias_con_productos)
+
+    if request.method == 'GET': 
+        return render(request, 'usuario/catalog.html', {
+            'categorias': categorias_con_productos, 
+            'productos': productos, 
+            'carro': carrito,
+            'user_id': user_id,
+            'categorias_generales': categorias_generales,
+            })
+    
+    elif request.method == 'POST':
+        nombre = request.POST.get('buscador_nombre')
+        cate = request.POST.get('buscador_categorias')
+
+        categorias = CategoriaProducto.objects.all()
+
+        if nombre:
+            productos = productos.filter(nombre__icontains=nombre)
+
+        if cate and cate != '-1':
+            productos = productos.filter(categoria__id=cate)
+            categorias_con_productos = categorias_con_productos.filter(id=cate)
 
         return render(request, 'usuario/catalog.html', {
             'categorias': categorias_con_productos, 
             'productos': productos, 
             'carro': carrito,
             'user_id': user_id,
+            'categorias_generales': categorias_generales,
             })
 
 # Función para agregar productos al carrito
@@ -354,10 +376,37 @@ def RenderAdminHome(request):
 
 @admin_required
 def RenderTrabajadores(request):
+    roles = Roles.objects.all().exclude(id=1)
     users = Usuario.objects.all()
     adm = Administrador.objects.all()
     pick = Picker.objects.all()
-    return render(request, 'admin/views/trabajadores.html',{'users': users, 'adm': adm, 'pick': pick})
+
+    if request.method == 'POST':
+        nombre = request.POST.get('buscador_nombre')
+        rol = request.POST.get('buscador_rol')
+        disponible = request.POST.get('buscador_disponible')
+
+        if nombre:
+            users = users.filter(nombre__icontains=nombre)
+        
+        if rol:
+            if rol != '-1':
+                users = users.filter(rol__id=rol)
+
+        if disponible:
+            if disponible != '3':
+                if disponible == '1':
+                    disponible = 'Activo'
+                elif disponible == '2':
+                    disponible = 'Inactivo'
+                users = users.filter(estado=disponible)
+        return render(request, 'admin/views/trabajadores.html',{'users': users, 'adm': adm, 'pick': pick, 'roles': roles})
+
+    return render(request, 'admin/views/trabajadores.html',{'users': users, 'adm': adm, 'pick': pick, 'roles': roles})
+
+@admin_required
+def EditTrabajadores(request, id):
+    pass
 
 @admin_required 
 def BlockTrabajador(request, id):
@@ -404,6 +453,27 @@ def RenderCategorias(request):
             return render(request, 'admin/productos/categorias/categorias.html', {'categorias': categorias, 'errores':has_error})
         
     elif request.method == 'GET':
+        return render(request, 'admin/productos/categorias/categorias.html', {'categorias': categorias})
+
+@admin_required
+def BuscadorCategoria(request):
+    if request.method == 'POST':
+        nombre = request.POST.get('buscador_nombre')
+        disponible = request.POST.get('buscador_disponible')
+
+        categorias = CategoriaProducto.objects.all()
+
+        if nombre:
+            categorias = categorias.filter(nombre__icontains=nombre.title())
+
+        if disponible:
+            if disponible != '3':
+                if disponible == '1':
+                    disponible = True
+                elif disponible == '2':
+                    disponible = False
+                categorias = categorias.filter(disponible=disponible)
+        
         return render(request, 'admin/productos/categorias/categorias.html', {'categorias': categorias})
 
 @admin_required
@@ -462,8 +532,36 @@ def BlockCategoria(request, id):
 @admin_required
 def RenderProducto(request):
     productos = Producto.objects.all()
+    categorias = CategoriaProducto.objects.filter(disponible=True)
     if request.method == 'GET':
-        return render(request, 'admin/productos/productos.html', {'productos': productos})
+        return render(request, 'admin/productos/productos.html', {'productos': productos, 'categorias': categorias})
+
+    elif request.method == 'POST':
+        nombre = request.POST.get('buscador_nombre')
+        fecha = request.POST.get('buscador_fecha')
+        categoria = request.POST.get('buscador_categoria')
+        disponible = request.POST.get('buscador_disponible')
+
+        if nombre:
+            productos = productos.filter(nombre__icontains=nombre)
+
+        if fecha:
+            productos = productos.filter(fecha_ingreso=fecha)
+
+        if categoria:
+            if categoria != '-1':
+                productos = productos.filter(categoria__id=categoria)
+
+        if disponible:
+            if disponible != '3':
+                if disponible == '1':
+                    disponible = True
+                elif disponible == '2':
+                    disponible = False
+                productos = productos.filter(disponible=disponible)
+
+        return render(request, 'admin/productos/productos.html', {'productos': productos, 'categorias': categorias})
+
 
 @admin_required 
 def AddProducto(request):
@@ -657,16 +755,45 @@ def BlockProducto(request, id):
                 return HttpResponse("Error al habilitar el producto: {}".format(producto.nombre), status=404)        
 
 @admin_required
-def RenderSupHome(request):
-    return render(request, 'supervisor/indexSuper.html')
-
-@admin_required
 def RenderSupInventario(request):
     if request.method == 'GET':
         carro = request.session.get('carroPedido', [])
         productos = Producto.objects.all()
         return render(request, 'admin/inventario/inventario.html', {'inventario': productos, 'carroPedido': carro})
+    
+    elif request.method == 'POST':
+        codigo = request.POST.get('buscador')
+        nombre = request.POST.get('buscador_nombre')
+        stock = request.POST.get('buscador_stock')
+        stock_opcion = request.POST.get('buscador_stock_opcion')
+        
+        carro = request.session.get('carroPedido', [])
+        productos = Producto.objects.all()
 
+        if codigo:
+            productos = productos.filter(id=codigo)
+
+        if nombre:
+            productos = productos.filter(nombre__icontains=nombre)
+
+        if stock:
+            try:
+                stock = int(stock)
+                if stock_opcion == 'lt':
+                    productos = productos.filter(stock_actual__lt=stock)
+                elif stock_opcion == 'gt':
+                    productos = productos.filter(stock_actual__gt=stock)
+                elif stock_opcion == 'equal':
+                    productos = productos.filter(stock_actual=stock)
+            except ValueError:
+                messages.error(request, 'Stock no Valido')
+
+        return render(request, 'admin/inventario/inventario.html', 
+                      {
+                        'inventario': productos, 
+                        'carroPedido': carro
+                          }) 
+    
 @admin_required
 def AddCartPedido(request, id):
     if request.method == 'POST':
@@ -816,6 +943,29 @@ def RenderVentas(request):
     if request.method == 'GET':
         ventas = Venta.objects.all()
         return render(request, 'admin/views/ventas.html', {'ventas': ventas})
+    
+    elif request.method == 'POST':
+        nro = request.POST.get('buscador')
+        rut = request.POST.get('buscador_rut')
+        total = request.POST.get('buscador_total')
+        fecha = request.POST.get('buscador_fecha')
+        
+        ventas = Venta.objects.all()
+
+        if nro:
+            ventas = ventas.filter(nro_boleta=nro)
+
+        if rut:
+            ventas = ventas.filter(rut_cliente__rut=rut)
+
+        if total:
+            ventas = ventas.filter(total=total)
+
+        if fecha:
+            ventas = ventas.filter(fecha=fecha)
+
+        return render(request, 'admin/views/ventas.html', {'ventas': ventas}) 
+    
 
 @admin_required
 def RenderDetalle(request, id):
@@ -831,7 +981,25 @@ def RenderPedido(request):
     if request.method == 'GET':
         pedido = Pedido.objects.all()
         return render(request, 'admin/views/pedidos.html', {'pedido': pedido})
+    
+    elif request.method == 'POST':
+        nro = request.POST.get('buscador')
+        total = request.POST.get('buscador_total')
+        fecha = request.POST.get('buscador_fecha')
+        
+        pedidos = Pedido.objects.all()
 
+        if nro:
+            pedidos = pedidos.filter(nro_pedido=nro)
+
+        if total:
+            pedidos = pedidos.filter(total_pedido=total)
+
+        if fecha:
+            pedidos = pedidos.filter(fecha=fecha) 
+
+        return render(request, 'admin/views/pedidos.html', {'pedido': pedidos}) 
+    
 @admin_required
 def RenderDetallePedido(request, id):
     if request.method == 'GET':
