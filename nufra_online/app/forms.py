@@ -8,14 +8,13 @@ class AddUserForm(forms.ModelForm):
         fields = '__all__'
 
         widgets = {
-            'rut': forms.TextInput(attrs={'class': 'form-control'}),
-            'nombre': forms.TextInput(attrs={'class': 'form-control'}),
-            'email': forms.TextInput(attrs={'class': 'form-control'}),
-            'telefono': forms.NumberInput(attrs={'class': 'form-control'}),
-            'direccion': forms.TextInput(attrs={'class': 'form-control'}),
-            'password': forms.TextInput(attrs={'class': 'form-control'}),
-            'estado': forms.HiddenInput(),
+            'rut': forms.TextInput(attrs={'class': 'form-control', 'placeholder':'12345678-9'}),
+            'nombre': forms.TextInput(attrs={'class': 'form-control', 'placeholder':'Matias'}),
+            'email': forms.TextInput(attrs={'class': 'form-control', 'placeholder':'matias.me@gmail.com'}),
+            'telefono': forms.NumberInput(attrs={'class': 'form-control', 'placeholder':'2145894'}),
+            'direccion': forms.TextInput(attrs={'class': 'form-control', 'placeholder':'Calle Real 2812'}),
             'password': forms.PasswordInput(attrs={'class': 'form-control'}),
+            'estado': forms.HiddenInput(),
             'rol': forms.HiddenInput(),
         }
 

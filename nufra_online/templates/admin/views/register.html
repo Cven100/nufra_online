@@ -1,7 +1,9 @@
 {% extends 'shared/baseIndex.html' %}
 {% load static %}
 
-{% block title %}Registro{% endblock %}
+{% block title %}
+  {% if editar %}Editar{% else %}Registro{% endif %}
+{% endblock %}
 
 {% block brand %}
 <a href="{% url 'AdminHome' %}" class="navbar-brand">
@@ -10,14 +12,34 @@
 {% endblock %}
 
 {% block content %}
+{% if messages %}
+            {% for message in messages %}
+                {% if message.tags == 'info' %}
+                <div class="alert alert-info">
+                    {{ message }}
+                </div>
+                {% elif message.tags == 'success' %}
+                <div class="alert alert-success">
+                    {{ message }}
+                </div>
+                {% elif message.tags == 'error' %}
+                <div class="alert alert-danger">
+                    {{ message }}
+                </div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
 <div class="container d-flex align-items-center justify-content-center" style="height: 80vh;">
     <div class="card p-4 shadow" style="max-width: 32rem; width: 100%;">
-        <h1 class="card-title text-center">Registro</h1>
+        <h1 class="card-title text-center">
+            {% if editar %}Editar Registro{% else %}Registro{% endif %}
+        </h1>
         <form method="POST">
             {% csrf_token %}
             <div class="col">
                 <label for="rut" class="form-label">Rut</label>
-                <input type="text" id="rut" name="rut" class="form-control" placeholder="12345678-k" maxlength="14">
+                <input type="text" id="rut" name="rut" class="form-control" placeholder="12345678-k" maxlength="14" 
+                       value="{% if editar %}{{ trabajador.rut }}{% else %}{% endif %}">
                 {% if errores.rut_empty %}
                 <span class="text-danger">{{errores.rut_empty}}</span>
                 {% elif errores.invalid %}
@@ -27,7 +49,8 @@
             <div class="row">
                 <div class="col-6 mt-3">
                     <label for="nombre" class="form-label">Nombre</label>
-                    <input type="text" id="nombre" name="nombre" class="form-control" placeholder="Juan" maxlength="150">
+                    <input type="text" id="nombre" name="nombre" class="form-control" placeholder="Juan" maxlength="150" 
+                           value="{% if editar %}{{ trabajador.nombre }}{% else %}{% endif %}">
                     {% if errores.name_empty %}
                     <span class="text-danger">{{errores.name_empty}}</span>
                     {% elif errores.name_max_char %}
@@ -36,7 +59,8 @@
                 </div>
                 <div class="col-6 mt-3">
                     <label for="apellido" class="form-label">Apellido</label>
-                    <input type="text" id="apellido" name="apellido" class="form-control" placeholder="Peralta" maxlength="150">
+                    <input type="text" id="apellido" name="apellido" class="form-control" placeholder="Peralta" maxlength="150" 
+                           value="{% if editar %}{{ trabajador.apellido }}{% else %}{% endif %}">
                     {% if errores.ape_empty %}
                     <span class="text-danger">{{errores.ape_empty}}</span>
                     {% elif errores.ape_max_char %}
@@ -47,16 +71,8 @@
             <div class="form-group mt-3">
                 <label for="username" class="form-label">Correo</label>
                 <div class="input-group">
-                    <input 
-                    type="text" 
-                    class="form-control" 
-                    id="username" 
-                    name="username" 
-                    placeholder="peralta.javier02" 
-                    aria-label="correo" 
-                    aria-describedby="basic-addon2"
-                    maxlength="254"
-                    >
+                    <input type="text" class="form-control" id="username" name="username" placeholder="peralta.javier02" aria-label="correo" 
+                           value="{% if editar %}{{ email_part }}{% else %}{% endif %}" aria-describedby="basic-addon2" maxlength="254">
                     <span class="input-group-text" id="basic-addon2">@nufra.com</span>
                 </div>
                 {% if errores.username_empty %}
@@ -70,26 +86,28 @@
             <div class="row mt-2">
                 <div class="col-6">
                     <label for="rol" class="form-label">Rol</label>
-                    <select name="rol" id="rol" class="form-select me-2">
-                        <option value="-1">--Seleccione un Rol--</option>
+                    <select name="rol" id="rol" class="form-select me-2" {% if editar %}disabled{% endif %}>
+                        <option value="-1" {% if not editar %}selected{% endif %}>--Seleccione un Rol--</option>
                         {% for i in roles %}
-                        {% if not i.id == 1 %}
-                        <option value="{{i.id}}">{{i.nombre}}</option>
-                        {% endif %}
+                        <option value="{{i.id}}" {% if editar and i.id == trabajador.rol.id %}selected{% endif %}>
+                            {{i.nombre}}
+                        </option>
                         {% endfor %}
                     </select>
+                    {% if editar %}<input type="hidden" name="rol" value="{{ trabajador.rol.id }}">{% endif %}
                     {% if errores.rol_default %}
                     <span class="text-danger">{{errores.rol_default}}</span>
-                    {% endif%}
+                    {% endif %}
                 </div>
                 <div class="col-6">
                     <label for="telefono" class="form-label">Telefono</label>
-                    <input type="number" id="telefono" name="telefono" class="form-control" placeholder="998941253" maxlength="20">
+                    <input type="number" id="telefono" name="telefono" class="form-control" placeholder="998941253" maxlength="20" 
+                           value="{% if editar %}{{ trabajador.telefono }}{% else %}{% endif %}">
                     {% if errores.telefono_empty %}
                     <span class="text-danger">{{errores.telefono_empty}}</span>
                     {% endif %}
                 </div>
-            </div>    
+            </div>
             <div class="row">
                 <div class="col-6 mt-2">
                     <label for="password" class="form-label">Contraseña</label>
@@ -113,7 +131,9 @@
                 <span class="text-danger">{{errores.password_final}}</span>
                 {% endif %}
             </div>
-            <button type="submit" class="btn btn-secondary w-100 mt-3">Registrar</button> 
+            <button type="submit" class="btn btn-secondary w-100 mt-3">
+                {% if editar %}Guardar cambios{% else %}Registrar{% endif %}
+            </button> 
         </form>
     </div>
 </div>

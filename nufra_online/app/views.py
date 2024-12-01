@@ -94,7 +94,7 @@ def RenderLogin(request):
 
 @admin_required
 def RenderRegister(request):
-    roles = Roles.objects.all()
+    roles = Roles.objects.all().exclude(id=1)
     if request.method == "POST":
         # USUARIO
         has_error = {}
@@ -406,7 +406,134 @@ def RenderTrabajadores(request):
 
 @admin_required
 def EditTrabajadores(request, id):
-    pass
+    roles = Roles.objects.all()
+    trabajador = None
+
+    if id:
+        try:
+            user = Usuario.objects.get(id=id)
+        except Usuario.DoesNotExist:
+            messages.error(request, 'Usuario no encontrado')
+            return redirect('AdminHome')  # Redirigir si no se encuentra el usuario
+        
+        if user.rol.id == 2:
+            trabajador = Administrador.objects.get(usuario_ptr_id=id)
+        elif user.rol.id == 3:
+            trabajador = Picker.objects.get(usuario_ptr_id=id)
+            
+    email_part = trabajador.email.split('@')[0] if trabajador.email else ''
+
+    if request.method == 'POST':
+        has_error = {}
+        rut_entregado = request.POST.get('rut')
+        nombre = request.POST.get('nombre')
+        apellido = request.POST.get('apellido')
+        username = request.POST.get('username')
+        rol = request.POST.get('rol')
+        password = request.POST.get('password')
+        confirm_password = request.POST.get('confirm_password')
+        telefono = request.POST.get('telefono')
+
+        chars_restringidos_correo = [
+            ' ', '..', '(', ')', '<', '>', '[', ']', ',', ';', ':', '"', '@'
+        ]
+        
+        # Validación de nombre
+        if nombre.strip() == "":
+            has_error['name_empty'] = 'El Campo NOMBRE no Puede Estar Vacio'
+        elif len(nombre) > 150:
+            has_error['name_max_char'] = 'Se ha Superado el MAXIMO de Caracteres, MAXIMO Permitido: 150'
+        else:
+            nombre = nombre.title()
+
+        # Validación de teléfono
+        if telefono.strip() == "":
+            has_error['telefono_empty'] = 'El Campo TELEFONO no Puede Estar Vacio'
+
+        # Validación de apellido
+        if apellido.strip() == "":
+            has_error['ape_empty'] = 'El Campo Apellido no Puede Estar Vacio'
+        elif len(apellido) > 150:
+            has_error['ape_max_char'] = 'Se ha Superado el MAXIMO de Caracteres, MAXIMO Permitido: 150'
+        else:
+            apellido = apellido.title()
+
+        # Validación de correo
+        if username.strip() == "":
+            has_error['username_empty'] = 'El Campo CORREO no Puede Estar Vacio'
+        else:
+            invalid_char = []
+            for char in username:
+                if char in chars_restringidos_correo:
+                    invalid_char.append(char)
+            if len(invalid_char) > 0:
+                invalid_char_str = ', '.join(set(invalid_char))
+                has_error['username_char_error'] = 'Caracter no Valido: {}.'.format(invalid_char_str)
+        
+        # Validación de rol
+        if rol == '-1':
+            has_error['rol_default'] = 'El Campo ROL Debe ser DISTINTO al PREDETERMINADO'
+
+        # Validación de contraseñas
+        if password != confirm_password:
+            has_error['password_final'] = 'Las contraseñas no coinciden'
+
+        # Validación existencia del correo (excluyendo el usuario actual)
+        if Usuario.objects.filter(email=username + '@nufra.com').exclude(id=id).exists():
+            has_error['duplicado'] = 'Ya Existe un Trabajador con este Correo'
+        
+        # Validación RUT
+        if rut_entregado.strip() == "":
+            has_error['rut_empty'] = 'El Campo RUT no Puede Estar Vacio'
+        
+
+        # Validar existencia de correo
+        if Usuario.objects.filter(email=username + '@nufra.com').exclude(id=id).exists():
+            has_error['duplicado'] = 'Ya Existe un Trabajador con este Correo'
+
+        # Si no hay errores
+        if not has_error:
+            if trabajador:
+                # Actualizar trabajador existente
+                trabajador.rut = rut_entregado
+                trabajador.nombre = nombre
+                trabajador.apellido = apellido
+                trabajador.telefono = telefono
+                trabajador.rol = Roles.objects.get(id=rol)
+                trabajador.email = username + '@nufra.com'
+                
+                if password:
+                    trabajador.set_password(password)
+                trabajador.save()
+            else:
+                # Crear nuevo trabajador
+                user = Administrador(
+                    rut=rut_entregado,
+                    nombre=nombre,
+                    apellido=apellido,
+                    rol=Roles.objects.get(id=rol),
+                    email=username + '@nufra.com',
+                    estado='Activo',
+                    telefono=telefono
+                )
+                user.set_password(password)
+                user.save()
+
+            return redirect('Trabajadores')  # Redirigir después de guardar
+
+        else:
+            return render(request, 'admin/views/register.html', {'roles': roles, 
+                                                                 'errores': has_error, 
+                                                                 'trabajador': trabajador, 
+                                                                 'editar': True,
+                                                                 'email_part': email_part,
+                                                                 })
+
+    # Si es GET, renderizar formulario
+    return render(request, 'admin/views/register.html', {'roles': roles, 'trabajador': trabajador, 'email_part': email_part, 'editar': True if trabajador else False})
+
+
+
 
 @admin_required 
 def BlockTrabajador(request, id):
