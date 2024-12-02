@@ -18,14 +18,24 @@ def admin_required(view_func):
     def wrapper(request, *args, **kwargs):
         # rol_id se basan en los de bd
         if request.session.get('user_id') and request.session.get('rol_id') == '2':
-            return view_func(request, *args, **kwargs)
+            usuario = Usuario.objects.get(id=request.session.get('user_id'))
+            if usuario.estado == 'Activo':
+                return view_func(request, *args, **kwargs)
+            messages.error(request, 'Usuario sin privilegios')
+            logout(request)
+            return redirect('Login')  # Redirige al login si esta inactivo
         return redirect('Login')  # Redirige al login si no es admin
     return wrapper
 
 def picker_required(view_func):
     def wrapper(request, *args, **kwargs):
         if request.session.get('user_id') and request.session.get('rol_id') == '3':  # '3' para rol de picker
-            return view_func(request, *args, **kwargs)
+            usuario = Usuario.objects.get(id=request.session.get('user_id'))
+            if usuario.estado == 'Activo':
+                return view_func(request, *args, **kwargs)
+            messages.error(request, 'Usuario sin privilegios')
+            logout(request)
+            return redirect('Login')  # Redirige al login si esta inactivo
         return redirect('Login')
     return wrapper
 
@@ -376,6 +386,7 @@ def RenderAdminHome(request):
 
 @admin_required
 def RenderTrabajadores(request):
+    usuario_en_session = request.session.get('user_id')
     roles = Roles.objects.all().exclude(id=1)
     users = Usuario.objects.all()
     adm = Administrador.objects.all()
@@ -400,9 +411,9 @@ def RenderTrabajadores(request):
                 elif disponible == '2':
                     disponible = 'Inactivo'
                 users = users.filter(estado=disponible)
-        return render(request, 'admin/views/trabajadores.html',{'users': users, 'adm': adm, 'pick': pick, 'roles': roles})
+        return render(request, 'admin/views/trabajadores.html',{'users': users, 'adm': adm, 'pick': pick, 'roles': roles, 'en_session': usuario_en_session})
 
-    return render(request, 'admin/views/trabajadores.html',{'users': users, 'adm': adm, 'pick': pick, 'roles': roles})
+    return render(request, 'admin/views/trabajadores.html',{'users': users, 'adm': adm, 'pick': pick, 'roles': roles, 'en_session': usuario_en_session})
 
 @admin_required
 def EditTrabajadores(request, id):

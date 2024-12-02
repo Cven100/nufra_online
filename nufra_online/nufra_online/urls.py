@@ -11,15 +11,15 @@ from drf_yasg import openapi
 
 schema_view = get_schema_view(
    openapi.Info(
-      title="Snippets API",
+      title="NUFRA ONLINE",
       default_version='v1',
-      description="Test description",
+      description="PAGINA DE VENTA ONLINE",
       terms_of_service="https://www.google.com/policies/terms/",
-      contact=openapi.Contact(email="contact@snippets.local"),
+      contact=openapi.Contact(email="contact@nufra.com"),
       license=openapi.License(name="BSD License"),
    ),
    public=True,
-   permission_classes=(permissions.AllowAny,),
+#    permission_classes=(permissions.AllowAny,),
 )
 
 
@@ -86,4 +86,7 @@ urlpatterns = [
     path('home/picker/gestionar-pedidos/', vistas.RenderOrdenes, name='pickerHome'),
     path('home/picker/gestionar-pedidos/estado/<int:id>', vistas.CheckEstado, name='checkEstado'),
 
+    path('swagger<format>/', schema_view.without_ui(cache_timeout=0), name='schema-json'),
+    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
