@@ -12,23 +12,6 @@
 {% endblock %}
 
 {% block content %}
-{% if messages %}
-    {% for message in messages %}
-        {% if message.tags == 'info' %}
-            <div class="alert alert-info">
-                {{ message }}
-            </div>
-        {% elif message.tags == 'success' %}
-            <div class="alert alert-success">
-                {{ message }}
-            </div>
-        {% elif message.tags == 'error' %}
-            <div class="alert alert-danger">
-                {{ message }}
-            </div>
-        {% endif %}
-    {% endfor %}
-{% endif %}
 <div class="d-flex justify-content-center align-items-center mt-5 pt-3">
     <div class="card shadow-lg" style="width: 100%; max-width: 400px;">
         <div class="card-body">

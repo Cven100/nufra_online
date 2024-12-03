@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout, authenticate, login
 from django.contrib.auth.forms import UserCreationForm
 #HTTP
+from django.db import IntegrityError
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
@@ -175,35 +176,47 @@ def RenderRegister(request):
         # VALIDACION RUT
         if rut_entregado.strip() == "":
             has_error['rut_empty'] = 'El Campo RUT no Puede Estar Vacio'
+        rut_entregado = rut_entregado.replace('.', '').replace('-', '').upper()
+
+        if len(rut_entregado) > 1:
+            cuerpo = rut_entregado[:-1]
+            digito_verificador = rut_entregado[-1] 
+            rut_final = f"{cuerpo}-{digito_verificador}"
+            if Usuario.objects.filter(rut=rut_final).exists():
+                has_error['rut_duplicado'] = 'Ya Existe un Usuario con este Rut'
+        else:
+            has_error['char_rut'] = 'Rut no valido'
 
         if not has_error:
-            if rol == '2':
-                user = Administrador(
-                    rut=rut_entregado,
-                    nombre=nombre,
-                    apellido=apellido,
-                    rol=Roles.objects.get(id=rol),
-                    email= username + '@nufra.com',
-                    estado= 'Activo',
-                    telefono=telefono
-                )
-                user.set_password(password)
-                user.save()
+            try:
+                if rol == '2':
+                        user = Administrador(
+                        rut=rut_final,
+                        nombre=nombre,
+                        apellido=apellido,
+                        rol=Roles.objects.get(id=rol),
+                        email= username + '@nufra.com',
+                        estado= 'Activo',
+                        telefono=telefono
+                        )
+                        user.set_password(password)
+                        user.save()
 
-            if rol == '3':
-                user = Picker(
-                    rut=rut_entregado,
-                    nombre=nombre,
-                    apellido=apellido,
-                    rol=Roles.objects.get(id=rol),
-                    email= username + '@nufra.com',
-                    estado= 'Activo',
-                    telefono=telefono
-                )
-                user.set_password(password)
-                user.save()
-
-            return render(request, 'admin/views/register.html', {'roles': roles})
+                if rol == '3':
+                    user = Picker(
+                        rut=rut_final,
+                        nombre=nombre,
+                        apellido=apellido,
+                        rol=Roles.objects.get(id=rol),
+                        email= username + '@nufra.com',
+                        estado= 'Activo',
+                        telefono=telefono
+                    )
+                    user.set_password(password)
+                    user.save()
+            except IntegrityError:
+                has_error['rut_duplicado'] = 'Ya Existe un Usuario con este Rut'
+            return render(request, 'admin/views/register.html', {'roles': roles, 'errores': has_error})
         else:
             return render(request, 'admin/views/register.html', {'roles': roles, 'errores': has_error})
     

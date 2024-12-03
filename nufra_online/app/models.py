@@ -6,7 +6,7 @@ class Roles(models.Model):
     nombre = models.CharField(max_length=50)
 
 class Usuario(models.Model):
-    rut = models.CharField(max_length=14, default="")
+    rut = models.CharField(max_length=14, unique=True)
     nombre = models.CharField(max_length=150, default="")
     email = models.CharField(max_length=255, unique=True)
     telefono = models.IntegerField(default=0)

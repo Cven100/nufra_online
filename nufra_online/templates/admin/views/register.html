@@ -39,9 +39,15 @@
             <div class="col">
                 <label for="rut" class="form-label">Rut</label>
                 <input type="text" id="rut" name="rut" class="form-control" placeholder="12345678-k" maxlength="14" 
-                       value="{% if editar %}{{ trabajador.rut }}{% else %}{% endif %}">
+                       value="{% if editar %}{{ trabajador.rut }}{% else %}{% endif %}"
+                       {% if editar %}readonly{% endif %}
+                       >
                 {% if errores.rut_empty %}
                 <span class="text-danger">{{errores.rut_empty}}</span>
+                {% elif errores.rut_duplicado %}
+                <span class="text-danger">{{errores.rut_duplicado}}</span>
+                {% elif errores.char_rut %}
+                <span class="text-danger">{{errores.char_rut}}</span>
                 {% elif errores.invalid %}
                 <span class="text-danger">{{errores.invalid}}</span>
                 {% endif %}
